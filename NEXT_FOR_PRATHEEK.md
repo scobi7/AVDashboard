@@ -1,5 +1,54 @@
 # Disengagement risk model — handoff
 
+## Reply from Pratheek (15 Oct 2026): revision 3, branch `disengagement-rev3`
+
+Everything below the line is Malachi's original handoff, kept as is. What happened to each item:
+
+- **Generalisation gap (the 8/15 LOCO).** Done two ways.
+  - Revision 2 (13 Oct) moved to a negative-binomial GLM with company fixed effects.
+  - Revision 3 goes further: the road-type number now comes from **within-company variation in the miles
+    each company filed**, not from pooling companies that drive different roads. It is calibrated by
+    simulation, because the plain estimator turned out to be biased.
+  - Result: per mile driven, freeway-type roads are *not* riskier than surface streets (90% set 0.10–1.40,
+    point 0.58). The 1.8× / 5.4× freeway multipliers were per km of road, an artifact of using road length
+    as exposure.
+  - Leave-one-company-out on the ratio: 0.61–0.79, or 1.10 without AImotive. On the final map: rank
+    correlation 0.93 or higher with any one of the 8 largest filers dropped.
+- **Caltrans AADT.** Used, but as a feature, not as exposure (AV test miles are not distributed like human
+  traffic). Freeway "other vehicle" takeovers (34–52% of freeway reports) scale with AADT; 14,072 Caltrans
+  count points cover 72% of freeway km. It stays state-highway only, as you said.
+- **Nithya's reframing** is implemented:
+  - "predicting disengagement risk", per mile, with a 90% range and a sample size;
+  - predicted at 500 m grid cells and named road stretches, shown by county, city and tract;
+  - several specialised models (one per road situation the reports name: signals, junctions, crosswalks,
+    bikes, merges, curbside activity, curves, ramps, freeway traffic) feeding one aggregated risk.
+- **Is it any good?** It is checked against located AV collisions, which played no part in building it.
+  DMV-reported autonomous-mode crashes 2019–24, per km of road within county: Spearman 0.45. For comparison:
+  - revision 2: 0.04;
+  - revision 1: −0.26;
+  - crossing density alone: 0.47;
+  - the collision-trained crash model: 0.43.
+
+  Caveat: on AV crashes the specialised layers mostly mark busy streets in general. Only the junction layer
+  tracks its own kind of crash, and there are only 6–19 located crashes per situation.
+- **Each layer against police-reported crashes (added later on 15 Oct).** CCRS 2022–24 has 365,921 located
+  crashes in LA, SF, San Mateo and Santa Clara.
+  - On the share of a 500 m cell's crashes of the matching type, 7 of 10 layers raise their own kind of crash.
+  - Junctions, curbside activity and freeway ramps don't.
+  - So most layers do mark where their situation happens. Whether AVs struggle there in particular, the AV
+    record is too thin to say.
+  - The map is also stable over time: 2019–22 vs 2023–24 reports, rank correlation 0.89.
+- **Rebuild:** see README ("What's in this repo"). `build_app.py` now runs from this repo with
+  `AVGAP_MODELING` pointing at Project-DSC `Modeling/`. Your template changes are kept; the new pieces only
+  appear in the `--disengagement` build.
+- **Still open:** interviews with transportation staff; the κ labelling; the outreach emails. A human
+  check of the road-situation labels (two annotators, ~100 reports) would be the cheapest next step on
+  the model.
+
+Full notebook: `notebooks/17_Disengagement_Risk_per_Mile.ipynb`.
+
+---
+
 For whoever (Claude or Pratheek) picks this up next. Read `disengagement_risk.py` first — this
 doc is context, not a replacement for reading the code.
 

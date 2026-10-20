@@ -26,8 +26,22 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "outputs")
+# The model outputs and caches live in the Project-DSC/Modeling folder (outputs/, av_data/, avgap_*.py).
+# Set AVGAP_MODELING to that folder to build from this repo; by default this script expects to sit in it.
+MODELING = os.environ.get("AVGAP_MODELING", HERE)
+sys.path.insert(0, MODELING)
+OUT = os.path.join(MODELING, "outputs")
+TEMPLATE = next(p for p in (os.path.join(HERE, "source", "template.html"), os.path.join(HERE, "app", "template.html"))
+                if os.path.exists(p))
 SCOPE_COUNTIES = ["San Francisco", "Los Angeles", "Santa Clara"]
+
+
+def out_csv(name, **kw):
+    """outputs/<name> from the Modeling folder, else this repo's own outputs/ copy."""
+    for d in (OUT, os.path.join(HERE, "outputs")):
+        if os.path.exists(os.path.join(d, name)):
+            return pd.read_csv(os.path.join(d, name), **kw)
+    raise FileNotFoundError(name)
 
 
 def r(v, n):
@@ -41,7 +55,7 @@ def ip(v):
 def tract_polygons(geoids, tol=0.0004):
     """Simplified [[lon,lat],...] exterior ring per GEOID, same order as `geoids`. None if missing."""
     from avgap_osm import read_polygons
-    ids, geoms, _ = read_polygons(os.path.join(HERE, "av_data", "tl_2023_06_tract.zip"), "GEOID")
+    ids, geoms, _ = read_polygons(os.path.join(MODELING, "av_data", "tl_2023_06_tract.zip"), "GEOID")
     gmap = dict(zip(ids, geoms))
     out = []
     for g in geoids:
@@ -64,6 +78,50 @@ def percentile(ref_values, values):
     return out
 
 
+def dis_payload(t):
+    """
+    Revision 3 extras for the disengagement dashboard, aligned with the tract list `t` (same order):
+      disTract   per tract: [per 1,000 mi, lo, hi, top feature, [terrain terms], [stretch indices]]
+      stretches  named road stretches, top 3 per tract: [street, km, signals, crossings, junctions, multiplier]
+      areas      county and city roll-ups: [level, name, county, multiplier, lo, hi, per 1,000 mi, road km,
+                 freeway share, sample size, top feature]
+      disModel   headline numbers for the page text (outputs/disengagement_model.json)
+    """
+    terms = [c for c in t.columns if c.startswith("term:")]
+    st = out_csv("disengagement_stretches.csv", dtype={"GEOID": str}, keep_default_na=False)
+    st = st[st.GEOID.isin(set(t.GEOID))]
+    st = (st.sort_values("risk_multiplier", ascending=False).drop_duplicates(["GEOID", "street"])
+            .groupby("GEOID").head(3).reset_index(drop=True))
+    sidx = {g: list(ix) for g, ix in st.groupby("GEOID").groups.items()}
+    stretches = [[x.street, r(x.km, 2), int(x.n_signal), int(x.n_crossing), int(x.n_junction), r(x.risk_multiplier, 2)]
+                 for x in st.itertuples()]
+    T = t[terms].to_numpy()
+    dis_tract = [[r(x.per_1k_miles, 3), r(x.per_1k_lo, 3), r(x.per_1k_hi, 3),
+                  x.top_feature if isinstance(x.top_feature, str) else None,
+                  [r(v, 3) for v in T[i]], [int(k) for k in sidx.get(x.GEOID, [])]]
+                 for i, x in enumerate(t.itertuples())]
+    a = out_csv("disengagement_areas.csv")
+    a = a[(a.level == "county") | a.county.isin(SCOPE_COUNTIES)]
+    areas = [[x.level, x.name, x.county, r(x.risk_multiplier, 3), r(x.risk_multiplier_lo, 3), r(x.risk_multiplier_hi, 3),
+              r(x.per_1k_miles, 3), r(x.road_km, 0), r(x.pct_freeway, 3), ip(x.n_sample),
+              x.top_feature if isinstance(x.top_feature, str) else None] for x in a.itertuples()]
+    # 500 m grid cells (the model's prediction unit) in the dashboard's counties: [row, col, multiplier,
+    # lo, hi, percentile within the cells, top-term index or -1]
+    c = out_csv("disengagement_cells.csv", dtype={"GEOID": str})
+    c = c[(c.road_km >= 0.2) & c.GEOID.isin(set(t.GEOID))].copy()
+    ct = [f"term:{n}" for n in [x[5:] for x in terms]]
+    ct = [x for x in ct if x in c.columns]
+    top = c[ct].to_numpy()
+    top_i = np.where(top.max(axis=1) > 0.01, top.argmax(axis=1), -1)
+    c["pct"] = (c.risk_multiplier.rank(pct=True) * 99 + 1).round()
+    cells = [[int(x.row), int(x.col), r(x.risk_multiplier, 2), r(x.risk_multiplier_lo, 2), r(x.risk_multiplier_hi, 2),
+              int(x.pct), int(k)] for x, k in zip(c.itertuples(), top_i)]
+    mpath = os.path.join(OUT, "disengagement_model.json")
+    model = json.load(open(mpath, encoding="utf-8")) if os.path.exists(mpath) else {}
+    return {"disTract": dis_tract, "stretches": stretches, "areas": areas, "disModel": model,
+            "termNames": [x[5:] for x in terms], "cells": cells, "cellTerms": [x[5:] for x in ct], "cellDeg": 0.0045}
+
+
 def main(statewide=False, simple=False, combined=False, disengagement=False):
     t = pd.read_csv(os.path.join(OUT, "tract_coverage_equity.csv"), dtype={"GEOID": str})
     sc = pd.read_csv(os.path.join(OUT, "tract_scores.csv"), dtype={"GEOID": str})
@@ -73,8 +131,7 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
                 on="GEOID", how="left")
     t = t.merge(pd.read_csv(os.path.join(OUT, "tract_scores_dmv_model.csv"), dtype={"GEOID": str})
                 [["GEOID", "risk316_q"]], on="GEOID", how="left")
-    t = t.merge(pd.read_csv(os.path.join(OUT, "tract_drivers.csv"), dtype={"GEOID": str}),
-                on="GEOID", how="left")
+    t = t.merge(out_csv("tract_drivers.csv", dtype={"GEOID": str}), on="GEOID", how="left")
 
     if combined:
         # Experimental: swap in the pooled CPUC+DMV "incident" model's risk_index. Status/coverage
@@ -89,12 +146,15 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
     if disengagement:
         # Second, separate dashboard: cross-company disengagement risk (road-type composition,
         # not Waymo-specific - Waymo is 1.8% of this dataset). Does NOT replace the collision map.
+        # Revision 3 (Modeling/avgap_disengage.py, notebook 17): relative risk per mile driven, 1 = an
+        # average California road mile, from specialised situation models x OpenStreetMap terrain.
         dg = pd.read_csv(os.path.join(OUT, "tract_scores_disengagement.csv"), dtype={"GEOID": str})
         dg = dg.rename(columns={"risk_multiplier": "risk_index", "risk_multiplier_lo": "risk_lo",
                                 "risk_multiplier_hi": "risk_hi"})
+        extra = [c for c in dg.columns if c.startswith("term:")] + ["per_1k_miles", "per_1k_lo", "per_1k_hi", "top_feature"]
         t = t.drop(columns=["risk_index", "risk_lo", "risk_hi"]).merge(
             dg[["GEOID", "risk_index", "risk_lo", "risk_hi", "n_sample", "pct_freeway",
-                "pct_arterial", "pct_local", "disengagements_per_million_miles"]],
+                "pct_arterial", "pct_local", "disengagements_per_million_miles"] + extra],
             on="GEOID", how="left")
         t["risk316_q"] = np.nan
         t["analogue_coverage"] = np.nan
@@ -152,15 +212,18 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
                else round(row["Any operator"] * row.share_listed_with_trips)}
               for _, row in cs.iterrows()]
 
-    outline_path = os.path.join(HERE, "av_data", "ca_outline.json")
+    outline_path = os.path.join(MODELING, "av_data", "ca_outline.json")
     outline = json.load(open(outline_path)) if os.path.exists(outline_path) else []
 
+    dis = dis_payload(t.reset_index(drop=True)) if disengagement else None
     data = {"counties": counties, "authorised": [c for c in auth if c in counties], "tracts": tracts,
             "tractPolys": tract_polys, "risk": risk, "series": series, "asOf": series[-1]["m"],
             "context": context, "outline": outline,
             "variant": "disengagement" if disengagement else ("combined" if combined else "collision")}
+    if dis:
+        data.update(dis)
     blob = json.dumps(data, separators=(",", ":"))
-    tpl = open(os.path.join(HERE, "app", "template.html"), encoding="utf-8").read()
+    tpl = open(TEMPLATE, encoding="utf-8").read()
     html = tpl.replace("/*__DATA__*/null", blob)
     html = html.replace("/*__LANDING__*/#", "https://av-validation-gap-landing.vercel.app")
 
@@ -183,15 +246,16 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
             'companies and years but costs some accuracy. No uncertainty range yet; treat percentiles as directional.</p>')
 
     if disengagement:
+        m = data.get("disModel", {})
         html = html.replace(
             '<th title="Percentile from the second model, trained on DMV crash reports 2019–24 from every company">Second model</th>',
-            '<th title="Disengagement reports behind this tract\'s road-mix estimate, statewide">Sample size</th>')
+            '<th title="Disengagement reports behind this tract’s estimate (all companies, on its road classes)">Sample size</th>')
         html = html.replace(
             '"Similar tracts driven" compares each tract to its 25 closest look-alikes by density, income, transit, car ownership and averages how long those 25 have actually been driven.',
-            'This score comes from a road-type concentration ratio (freeway/arterial/local street), not a built-environment look-alike comparison — so "similar tracts" doesn’t apply here. See the lede above for the method.')
+            'Validation status is about evidence (has anyone driven places like this?), not about disengagement risk.')
         html = html.replace(
             '<h1>Where are driverless-car disengagements most likely?</h1>',
-            '<h1>Disengagement risk, by road type</h1>')
+            '<h1>Disengagement risk per mile: where is the tricky terrain?</h1>')
         html = html.replace(
             "<p class=\"lede\">Expected autonomous vehicle (AV) collisions for every census tract in "
             "San Francisco, Los Angeles and Santa Clara.\n"
@@ -199,13 +263,15 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
             "checked against an independent record: the DMV's 2019–24 crash reports from every company.\n"
             "      Scores are relative (a 1–100 percentile with a 90% range). They rank places; "
             "they do not rate whether AVs are safe.</p>",
-            '<p class="lede">An industry-wide pattern, not a Waymo-specific one — Waymo is only '
-            '1.8% of the underlying disengagement reports (39 companies, CA DMV, 2020–24). '
-            'Scores a tract by its road-type mix (freeway/arterial/local street, from OpenStreetMap) '
-            'against how much disengagements concentrate on each type statewide (freeways run '
-            '1.8× their road-length share; arterials run 0.4×). No mile-by-road-type data '
-            'exists publicly for any company, so this uses road length as the exposure stand-in — '
-            'stated plainly, not hidden. Ranges are wide on purpose.</p>')
+            '<p class="lede">How likely an autonomous vehicle is to need a human takeover per mile driven here, '
+            'relative to an average California road mile: predicted for every 500 m grid cell and road stretch, '
+            'shown by county, city and tract. Built from ' + f"{m.get('reports', 0):,}" + ' CA DMV disengagement reports '
+            '(' + str(m.get('companies', 39)) + ' companies, 2020–24; Waymo is under 2%) and the miles each company filed. '
+            'Each road situation the reports name (traffic control, junctions, pedestrians, cyclists, merges) is a specialised '
+            'model tied to the OpenStreetMap feature where it happens; together they give one risk per mile, with a 90% range '
+            'and the number of reports behind it. It ranks places; it does not rate whether AVs are safe.</p>')
+        html = html.replace('Click a tract for its score, range, and why',
+                            'Click a tract for its risk per mile, range, and what makes it tricky')
 
     if simple:
         # map + ranked list only: hide (not delete) the other sections, so no JS that
@@ -223,6 +289,7 @@ def main(statewide=False, simple=False, combined=False, disengagement=False):
         name += "-disengagement"
     if simple:
         name += "-simple"
+    os.makedirs(os.path.join(HERE, "app"), exist_ok=True)
     dst = os.path.join(HERE, "app", name + ".html")
     open(dst, "w", encoding="utf-8").write(html)
     print(f"wrote {dst} ({os.path.getsize(dst)/1e6:.2f} MB, {len(tracts):,} tracts, scope: {context['scope']})")

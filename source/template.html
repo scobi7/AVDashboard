@@ -68,7 +68,7 @@ header{display:grid;gap:10px}
 button:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .spacer{flex:1}
 .zoom button{font:inherit;font-weight:700;width:32px;height:30px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;cursor:pointer}
-.mapbox{position:relative;min-height:520px;touch-action:none}
+.mapbox{position:relative;min-height:520px;touch-action:none;overflow:hidden}   /* off-map metro labels must not widen the page */
 canvas#map{position:absolute;inset:0;width:100%;height:100%;cursor:grab;display:block}
 canvas#map.dragging{cursor:grabbing}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
@@ -167,6 +167,23 @@ footer a{color:var(--ink2)}
   .find input{flex:1}
   .mapbox{min-height:420px}
 }
+/* revision 3: per-mile terms, stretches and the places table (disengagement variant only) */
+.terms{display:grid;gap:3px}
+.trow{display:grid;grid-template-columns:170px minmax(0,1fr) 48px;gap:8px;align-items:center;font-size:12.5px}
+.trow .tv{font-family:var(--mono);text-align:right;font-size:12px}
+.trow .pchk{color:var(--ink2);cursor:help}
+.tbar{position:relative;height:12px}
+.tbar .ax{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink2)}
+.tbar .fill{position:absolute;top:2px;height:8px;border-radius:2px}
+.stretch{font-size:12.5px;line-height:1.35;padding:5px 0;border-top:1px solid var(--line)}
+.stretch b{font-weight:600}
+.stretch small{color:var(--ink2)}
+table.places td:first-child,table.places th:first-child{text-align:left}
+table.places tr[data-city]{cursor:pointer}
+table.places tr[data-city]:hover{background:var(--bg)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg2 button{font:inherit;font-size:12.5px;padding:5px 10px;border:0;background:var(--surface);color:var(--ink2);cursor:pointer}
+.seg2 button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -230,6 +247,22 @@ footer a{color:var(--ink2)}
       <div id="tbody" hidden></div>
       <div id="cbody" style="display:grid;gap:14px"></div>
     </aside>
+  </section>
+
+  <section class="panel card" id="places" aria-label="Disengagement risk by county and city" hidden>
+    <div class="toolbar">
+      <div>
+        <div class="eyebrow">Shown at county and city level · predicted at 500 m cells</div>
+        <h2>Disengagement risk per mile, by place</h2>
+      </div>
+      <span class="spacer"></span>
+      <div class="seg2" role="group" aria-label="Level">
+        <button id="pl-county" aria-pressed="true">Counties</button>
+        <button id="pl-city" aria-pressed="false">Cities</button>
+      </div>
+    </div>
+    <p class="sub" id="places-sub"></p>
+    <div class="tablewrap"><table class="cmp places" id="places-t"><thead></thead><tbody></tbody></table></div>
   </section>
 
   <section class="panel card" aria-label="Flag list">
@@ -381,6 +414,7 @@ function renderCounty(i){
   } else if (!sv.length){
     h += '<p class="note">Not authorised for driverless deployment, and no filing lists any tract.</p>';
   }
+  if (VARIANT === "disengagement" && D.areas) h = disCounty(c) + h;
   $("#cbody").innerHTML = h;
   sel.value = i; draw();
 }
@@ -421,6 +455,7 @@ function draw(){
   const selC = +sel.value;
   proj = T.map(t => px(t[0], t[1]));
   let visible = 0;
+  if (mode === "grid"){ drawCells(); return; }
   // draw order: background classes first, so the classes that matter sit on top
   const layers = mode === "cov" ? [0, 1, 2] : mode === "stat" ? [3, 0, 1, 2] : [0];
   const STAT_COL = [pal["--accent"], pal["--watch"], pal["--gap"], pal["--other"]];
@@ -485,8 +520,11 @@ function draw(){
 }
 // what each layer is built from, and how current it is
 const FILING = "service area: CPUC deployment filing, " + D.asOf;
+const DT = D.disTract || null;          // revision 3 per-tract extras (disengagement variant)
 const LAYER_DATA = {
-  risk: "Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING,
+  grid: "Data: CA DMV disengagement and mileage reports 2020–24 (all companies) · OpenStreetMap terrain per 500 m cell · " + FILING,
+  risk: (DT ? "Data: CA DMV disengagement and mileage reports 2020–24 (all companies) · road situations read from the reports by two local LLMs · OpenStreetMap terrain · "
+             : "Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · ") + FILING,
   stat: "Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING + " · analogues from census and OpenStreetMap features",
   cov:  "Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING,
   hisp: "Data: ACS 2019–2023 5-year estimates · " + FILING,
@@ -518,8 +556,14 @@ function colorKey(){
     body = '<span class="key"><i style="background:var(--accent)"></i>In a deployment filing</span>' +
       '<span class="key"><i style="background:var(--gap)"></i>Authorised, no filing</span>' +
       '<span class="key"><i style="background:var(--other)"></i>Not authorised</span>';
+  } else if (mode === "grid"){
+    title = "Risk per mile, 500 m cells";
+    body = '<span class="ramp" style="display:flex;height:9px;border-radius:3px;overflow:hidden">' +
+      [0,1,2,3,4].map(i => '<span style="flex:1;background:var(--r' + i + ')"></span>').join("") + '</span>' +
+      '<span class="nums" style="margin-top:4px"><span>Low</span><span>20th … 80th+</span></span>' +
+      '<span style="display:block;margin-top:5px;font-size:11px">Percentile among the cells on this map. Zoom in to see streets; hover a cell for its risk per mile and trickiest feature.</span>';
   } else if (mode === "risk"){
-    title = "Disengagement-risk percentile";
+    title = VARIANT === "disengagement" && D.disTract ? "Disengagement risk per mile" : "Disengagement-risk percentile";
     const [, stops] = RAMP.risk;
     const f = v => v + "th";
     const ramp = fam => '<span class="ramp" style="display:flex;height:9px;border-radius:3px;overflow:hidden">' +
@@ -543,6 +587,12 @@ $("#colorkey").addEventListener("click", e => {
   ckOpen = !ckOpen; colorKey();
 });
 function legendBody(el){
+  if (mode === "grid"){
+    el.innerHTML = '<span>Disengagement risk per mile, 500 m grid cells (percentile among cells)</span><span class="ramp">' +
+      [0,1,2,3,4].map(i => '<i style="background:var(--r' + i + ')"></i>').join("") + '</span><span class="num">20th … 80th+</span>' +
+      '<span class="spacer"></span><span>Predicted per cell, shown by tract, city and county elsewhere</span>';
+    return;
+  }
   if (mode === "stat"){
     el.innerHTML = [0, 1, 2, 3].map(s => '<span class="key"><i style="background:' + (s === 3 ? "var(--other)" : STATUS_VAR[s]) + '"></i>' + STATUS[s] + '</span>').join("") +
       '<span class="spacer"></span><span>Covered = listed in a filing, driving now &nbsp;·&nbsp; Watch = authorised, not listed, but similar places have been driven &nbsp;·&nbsp; Flag = authorised, not listed, and &lt;10% of its 25 closest analogues driven (or far outside driven conditions)</span>';
@@ -570,6 +620,11 @@ function legendBody(el){
   }
 }
 const MODES = ["stat","risk","cov"];
+if (D.cells && D.cells.length){
+  const b = Object.assign(document.createElement("button"), { id:"m-grid", textContent:"500 m grid" });
+  b.setAttribute("aria-pressed", "false"); b.title = "The model's prediction unit: 500 m grid cells";
+  $("#m-risk").insertAdjacentElement("afterend", b); MODES.push("grid");
+}
 function setMode(m){ mode = m; MODES.forEach(k => $("#m-" + k).setAttribute("aria-pressed", k === m)); legend(); draw(); }
 MODES.forEach(k => $("#m-" + k).addEventListener("click", () => setMode(k)));
 function go(p){ const [lon, lat, z] = PRESET[p]; view = { lon, lat, z }; draw(); }
@@ -618,15 +673,19 @@ function dominantRoad(t){
   return m[best] == null ? "–" : Math.round(m[best] * 100) + "% " + ROAD_NAMES[best];
 }
 function hover(x, y){
+  if (mode === "grid"){ cellTip(x, y); return; }
   const i = nearest(x, y); if (i < 0){ tip.hidden = true; return; }
   const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–";
   const dg = VARIANT === "disengagement";
   tip.innerHTML = '<b>' + c + ' · tract ' + t[9].slice(5) + '</b><span style="color:' + STATUS_VAR[t[10]] + ';font-weight:700;font-size:12px">' + STATUS[t[10]] + '</span>' +
-    '<div class="row"><span>' + (dg ? "Risk vs. statewide average" : "Risk vs. typical tract") + '</span><span>' + (t[11] == null ? "–" : x2(t[11]) + "×" + (t[14] ? "" : " *")) + '</span></div>' +
+    '<div class="row"><span>' + (dg ? (DT ? "Risk per mile vs. CA" : "Risk vs. statewide average") : "Risk vs. typical tract") + '</span><span>' + (t[11] == null ? "–" : x2(t[11]) + "×" + (t[14] ? "" : " *")) + '</span></div>' +
     (dg
-      ? '<div class="row"><span>Mostly</span><span>' + dominantRoad(t) + '</span></div>' +
-        '<div class="row"><span>Est. disengagements</span><span>' + (t[28] == null ? "–" : fmt(t[28]) + '/M mi') + '</span></div>' +
-        '<div class="row"><span>Sample size</span><span>' + (t[24] == null ? "–" : fmt(t[24])) + '</span></div>' +
+      ? (DT ? '<div class="row"><span>90% range</span><span>' + (range(t) || "–") + '</span></div>' +
+          '<div class="row"><span>Per 1,000 mi <small>(median co.)</small></span><span>' + x2(DT[i][0]) + '</span></div>' +
+          '<div class="row"><span>Tricky terrain</span><span>' + (DT[i][3] || "–") + '</span></div>'
+        : '<div class="row"><span>Mostly</span><span>' + dominantRoad(t) + '</span></div>' +
+          '<div class="row"><span>Est. disengagements</span><span>' + (t[28] == null ? "–" : fmt(t[28]) + '/M mi') + '</span></div>') +
+        '<div class="row"><span>Reports behind it</span><span>' + (t[24] == null ? "–" : fmt(t[24])) + '</span></div>' +
         '<div class="row"><span>Residents</span><span>' + fmt(t[3]) + '</span></div>'
       : '<div class="row"><span>Similar tracts driven</span><span>' + pct(t[12]) + '</span></div>' +
         '<div class="row"><span>Residents</span><span>' + fmt(t[3]) + '</span></div>' +
@@ -647,6 +706,7 @@ function selectTract(i, fly){
   const ood = t[13] == null ? "–" : x2(t[13]) + (t[13] > 2 ? " (outside driven conditions)" : t[13] <= 1 ? " (typical)" : "");
   const ord = v => v == null ? "–" : v + (v % 100 >= 11 && v % 100 <= 13 ? "th" : ["th","st","nd","rd"][v % 10] || "th");
   const dg = VARIANT === "disengagement";
+  if (dg && DT){ $("#tbody").innerHTML = disCard(i); $("#tbody").hidden = false; if (t[2] >= 0) renderCounty(t[2]); else draw(); return; }
   $("#tbody").innerHTML = '<div class="tcard"><div class="eyebrow">Selected tract</div><h3>Tract ' + t[9] + '</h3>' +
     '<dl class="kv"><dt>Disengagement risk</dt><dd><b>' + ord(t[20]) + '</b> percentile</dd>' +
     '<dt>90% range</dt><dd>' + (t[21] == null ? "–" : ord(t[21]) + '–' + ord(t[22])) + '</dd>' +
@@ -672,6 +732,124 @@ function selectTract(i, fly){
   $("#tbody").hidden = false;
   if (t[2] >= 0) renderCounty(t[2]); else draw();
 }
+
+/* ---------------- revision 3: 500 m grid cells ---------------- */
+const CELLS = D.cells || [], CD = D.cellDeg || 0.0045;
+const CELLMAP = new Map(CELLS.map((c, j) => [c[0] + "_" + c[1], j]));
+const cellW = row => CD / Math.cos((row + 0.5) * CD * Math.PI / 180);
+function drawCells(){
+  const stops = RAMP.risk[1];
+  METRO_LABELS.forEach(m => { m.el.style.opacity = 0; m.el.style.left = "0px"; m.el.style.top = "0px"; });
+  for (const c of CELLS){
+    const lat0 = c[0] * CD, w = cellW(c[0]), lon0 = c[1] * w;
+    const [x0, y1] = px(lon0, lat0), [x1, y0] = px(lon0 + w, lat0 + CD);
+    if (x1 < -2 || y1 < -2 || x0 > W + 2 || y0 > H + 2) continue;
+    ctx.fillStyle = pal["--r" + Math.max(0, rampBucket(c[5], stops))];
+    ctx.fillRect(x0, y0, Math.max(1, x1 - x0 + .3), Math.max(1, y1 - y0 + .3));
+  }
+  const cEl = $("#tractcount");
+  if (cEl) cEl.innerHTML = "<b>" + CELLS.length.toLocaleString() + "</b> grid cells (500 m) with 200 m+ of road";
+}
+function cellTip(x, y){
+  const [lon, lat] = unpx(x, y), row = Math.floor(lat / CD), col = Math.floor(lon / cellW(row));
+  const j = CELLMAP.get(row + "_" + col); if (j == null){ tip.hidden = true; return; }
+  const c = CELLS[j], tn = c[6] >= 0 ? (D.cellTerms || [])[c[6]] : null;
+  tip.innerHTML = '<b>500 m cell</b>' +
+    '<div class="row"><span>Risk per mile vs. CA</span><span>' + x2(c[2]) + '×</span></div>' +
+    '<div class="row"><span>90% range</span><span>' + x2(c[3]) + '–' + x2(c[4]) + '×</span></div>' +
+    '<div class="row"><span>Percentile (cells)</span><span>' + c[5] + '</span></div>' +
+    '<div class="row"><span>Trickiest feature</span><span>' + (tn ? (TERM_LABEL[tn] || tn) : "–") + '</span></div>';
+  tip.hidden = false;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  tip.style.left = Math.min(x + 14, W - tw - 6) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
+}
+
+/* ---------------- revision 3: disengagement risk per mile ---------------- */
+const TERM_LABEL = { "traffic control":"Signals & stop signs", "intersection turn":"Junctions", "pedestrian":"Crosswalks",
+  "cyclist":"Bike lanes", "lane change or merge":"Multi-lane streets", "obstruction":"Shops & services (curbside)",
+  "lane keeping":"Curves", "lane change or merge (freeway)":"Freeway ramps", "lane keeping (freeway)":"Freeway curves",
+  "other vehicle (freeway)":"Freeway traffic" };
+const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" })[c]);
+const AREA = (D.areas || []).map(a => ({ level:a[0], name:a[1], county:a[2], m:a[3], lo:a[4], hi:a[5], k:a[6], km:a[7], fw:a[8], n:a[9], top:a[10] }));
+// a feature label -> the reports naming its situation (that specialised model's sample size)
+const FEATURE_SIT = { "signals & stop signs":["surface","traffic control"], "junctions":["surface","intersection turn"], "crosswalks":["surface","pedestrian"],
+  "bike lanes":["surface","cyclist"], "multi-lane streets":["surface","lane change or merge"], "shops & services (curbside)":["surface","obstruction"],
+  "curves":["surface","lane keeping"], "freeway ramps":["freeway","lane change or merge"], "freeway curves":["freeway","lane keeping"],
+  "freeway traffic (AADT)":["freeway","other vehicle"] };
+const topN = top => { const SR = (D.disModel || {}).situation_reports, f = FEATURE_SIT[top]; return SR && f ? SR[f[0]][f[1]] : null; };
+function termBars(terms){
+  const names = D.termNames || [];
+  const rows = names.map((n, j) => [n, terms[j] || 0]).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  const mx = Math.max(.05, ...rows.map(r => Math.abs(r[1])));
+  return '<div class="terms">' + rows.map(([n, v]) => {
+    const w = Math.abs(v) / mx * 50, left = v >= 0 ? 50 : 50 - w;
+    const SR = (D.disModel || {}).situation_reports, fwy = n.endsWith("(freeway)");
+    const nr = SR ? (fwy ? SR.freeway[n.replace(" (freeway)", "")] : SR.surface[n]) : null;
+    const pc = (((D.disModel || {}).validation || {}).police_by_layer || {})[n];
+    const pcs = !pc ? '' : ' <small class="pchk" title="' + esc('Police-reported crashes 2022–24 (LA, SF, San Mateo, Santa Clara): where this feature is denser, ' +
+      (pc.raises_own ? 'a larger share of crashes are “' + pc.crash_type + '”' : 'the share of “' + pc.crash_type + '” crashes does not clearly rise') +
+      ' (odds ratio ' + pc.odds_ratio.toFixed(2) + ' per sd, 90% ' + pc.lo.toFixed(2) + '–' + pc.hi.toFixed(2) + '; ' + fmt(pc.crashes) + ' crashes).') +
+      '" aria-label="' + (pc.raises_own ? 'confirmed by police-reported crashes' : 'not confirmed by police-reported crashes') + '">' + (pc.raises_own ? '✓' : '✗') + '</small>';
+    return '<div class="trow"><span>' + (TERM_LABEL[n] || n) + (nr == null ? '' : ' <small style="color:var(--ink2)" title="Reports that name this situation (all companies)">n=' + fmt(nr) + '</small>') + pcs + '</span><span class="tbar"><span class="ax"></span>' +
+      '<span class="fill" style="left:' + left.toFixed(1) + '%;width:' + w.toFixed(1) + '%;background:' + (v >= 0 ? "var(--gap)" : "var(--accent)") + '"></span></span>' +
+      '<span class="tv">' + (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2) + '</span></div>'; }).join("") + '</div>';
+}
+function disCard(i){
+  const t = T[i], x = DT[i], c = t[2] >= 0 ? D.counties[t[2]] : "–", M = D.disModel || {};
+  const ord = v => v == null ? "–" : v + (v % 100 >= 11 && v % 100 <= 13 ? "th" : ["th","st","nd","rd"][v % 10] || "th");
+  const st = (x[5] || []).map(k => D.stretches[k]).filter(Boolean);
+  return '<div class="tcard"><div class="eyebrow">Selected tract · ' + esc(c) + (t[17] ? ' · ' + esc(t[17]) : '') + '</div><h3>Tract ' + t[9] + '</h3>' +
+    '<dl class="kv"><dt>Disengagement risk per mile <small>(1 = average CA road mile)</small></dt><dd><b>' + x2(t[11]) + '×</b></dd>' +
+    '<dt>90% range</dt><dd>' + (range(t) || "–") + '</dd>' +
+    '<dt>Per 1,000 miles <small>(at the 2024 median company’s rate, ' + (M.reference_rate == null ? "–" : (+M.reference_rate).toFixed(2)) + ')</small></dt><dd>' + x2(x[0]) + ' <small>(' + x2(x[1]) + '–' + x2(x[2]) + ')</small></dd>' +
+    '<dt>Within this map</dt><dd>' + ord(t[20]) + ' percentile</dd>' +
+    '<dt>Reports behind it <small>(all companies, its road classes)</small></dt><dd>' + fmt(t[24]) + '</dd>' +
+    '<dt>Freeway-type road</dt><dd>' + pct(t[25]) + '</dd><dt>Residents</dt><dd>' + fmt(t[3]) + '</dd></dl>' +
+    '<div class="sec"><h4>What makes it tricky</h4><p class="hint" style="font-size:12px;color:var(--ink2);margin:0">Each specialised model’s pull on this tract’s risk per mile, against an average California road mile: its feature density here × the share of reports that name that situation (n = reports naming it, the model’s sample size). ' +
+      (((M.validation || {}).police_by_layer) ? '✓ = the feature marks its situation in police-reported crashes (a larger share of the matching crash type where it is denser); ✗ = not confirmed.' : '') + '</p>' + termBars(x[4] || []) + '</div>' +
+    (st.length ? '<div class="sec"><h4>Trickiest stretches here</h4>' + st.map(s => '<div class="stretch"><b>' + esc(s[0]) + '</b> · ' + x2(s[5]) + '×<br><small>' + s[1].toFixed(1) + ' km in one 500 m cell: ' +
+        s[2] + ' signals, ' + s[3] + ' crossings, ' + s[4] + ' junctions</small></div>').join("") + '</div>' : '') +
+    '<p class="sub" style="margin:0;font-size:12.5px;color:var(--ink2)">Disengagement reports have no location, so this is a prediction from where each kind of takeover happens (the road situations the reports name) and how much of that terrain this tract has. ' +
+    'It is industry-wide (39 companies; Waymo under 2%), describes the 2020–24 testing era, and measures risk relative to other places, not whether AVs are safe here.</p></div>';
+}
+function disCounty(c){
+  const a = AREA.find(r => r.level === "county" && r.name === c);
+  if (!a) return "";
+  const cities = AREA.filter(r => r.level === "city" && r.county === c && r.km >= 20).sort((p, q) => q.m - p.m);
+  return '<div class="sec"><h4>Disengagement risk per mile</h4><dl class="kv"><dt>' + esc(c) + ' County <small>(1 = average CA road mile)</small></dt><dd><b>' + x2(a.m) + '×</b> <small>(' + x2(a.lo) + '–' + x2(a.hi) + ')</small></dd>' +
+    '<dt>Per 1,000 miles <small>(median company)</small></dt><dd>' + x2(a.k) + '</dd><dt>Trickiest feature</dt><dd style="font-family:inherit">' + esc(a.top || "–") + '</dd>' +
+    '<dt>Reports naming that situation</dt><dd>' + fmt(topN(a.top)) + '</dd></dl>' +
+    (cities.length ? '<table class="cmp places"><thead><tr><th>City</th><th>Risk/mile</th><th>90% range</th></tr></thead><tbody>' +
+      cities.slice(0, 12).map(r => '<tr data-city="' + esc(r.name) + '"><td>' + esc(r.name) + '</td><td>' + x2(r.m) + '×</td><td class="rng">' + x2(r.lo) + '–' + x2(r.hi) + '</td></tr>').join("") +
+      '</tbody></table>' + (cities.length > 12 ? '<p class="note" style="margin:0">Top 12 of ' + cities.length + ' cities with 20+ km of road; all are in the table below the map.</p>' : '') : '') + '</div>';
+}
+function flyCity(city){
+  const rows = T.filter(t => t[17] === city); if (!rows.length) return;
+  view = { lon:rows.reduce((a, t) => a + t[0], 0) / rows.length, lat:rows.reduce((a, t) => a + t[1], 0) / rows.length,
+           z:Math.max(6, Math.min(20, 40 / Math.sqrt(rows.length))) };
+  pick = -1; $("#tbody").hidden = true; renderCounty(rows[0][2]);
+  $("#mapbox").scrollIntoView({ behavior:"smooth", block:"center" });
+}
+document.addEventListener("click", e => { const tr = e.target.closest("tr[data-city]"); if (tr) flyCity(tr.dataset.city); });
+let placeLevel = "county";
+function places(){
+  if (!AREA.length) return;
+  $("#places").hidden = false;
+  const M = D.disModel || {};
+  const rows = AREA.filter(r => r.level === placeLevel && (placeLevel === "county" || r.km >= 20)).sort((p, q) => q.m - p.m);
+  $("#places-sub").innerHTML = (placeLevel === "county" ? 'All ' + rows.length + ' California counties' : rows.length + ' cities with 20+ km of road in ' + D.counties.join(", ")) +
+    ', ranked by disengagement risk per mile (1 = an average California road mile). Per 1,000 miles uses the 2024 median company’s rate' +
+    (M.reference_rate == null ? '' : ' (' + (+M.reference_rate).toFixed(2) + ')') + '; companies differ by orders of magnitude, so read the ranking and the ratio, not the absolute count. ' +
+    'Each place is the average over its own road network; the 90% range covers the freeway/surface ratio, the situation shares and how many unnamed reports follow the named mix.' +
+    (placeLevel === "city" ? ' Click a city to go there on the map.' : '');
+  $("#places-t thead").innerHTML = '<tr><th>' + (placeLevel === "county" ? "County" : "City") + '</th>' + (placeLevel === "city" ? '<th>County</th>' : '') +
+    '<th>Risk per mile</th><th>90% range</th><th>Per 1,000 mi</th><th>Road km</th><th>Freeway-type</th><th>Trickiest feature</th><th title="Reports (all companies) that name the situation tied to this feature: the sample size of that specialised model">Its reports</th></tr>';
+  $("#places-t tbody").innerHTML = rows.map(r => '<tr' + (placeLevel === "city" ? ' data-city="' + esc(r.name) + '"' : '') + '><td>' + esc(r.name) + '</td>' +
+    (placeLevel === "city" ? '<td>' + esc(r.county) + '</td>' : '') + '<td>' + x2(r.m) + '×</td><td class="rng">' + x2(r.lo) + '–' + x2(r.hi) + '</td><td>' + x2(r.k) + '</td><td>' + fmt(r.km) + '</td><td>' + pct(r.fw) + '</td><td>' + esc(r.top || "–") + '</td><td>' + fmt(topN(r.top)) + '</td></tr>').join("");
+  ["county", "city"].forEach(l => $("#pl-" + l).setAttribute("aria-pressed", l === placeLevel));
+}
+["county", "city"].forEach(l => $("#pl-" + l).addEventListener("click", () => { placeLevel = l; places(); }));
+if (VARIANT === "disengagement") places();
 
 /* ---------------- search ---------------- */
 const byGeo = new Map(T.map((t, i) => [t[9], i]));
@@ -713,7 +891,8 @@ function flagList(){
   $("#flag-sub").innerHTML = '<b>' + fmt(all.length) + (unserved ? ' tracts not yet in the service area' : ' tracts') + '</b>' + (want ? ' in ' + want : '') +
     ', ranked by disengagement risk (top 40 shown). The list leaves out ' + fmt(ext) + ' tracts outside the conditions driven so far, where the model would be extrapolating, and tracts with under 500 residents. ' +
     (VARIANT === "disengagement"
-      ? 'A leave-one-company-out check found this road-type pattern does not yet reliably generalize to a company not in the training data — treat rankings as directional, not precise. '
+      ? (D.disModel && D.disModel.validation ? D.disModel.validation.text + ' '
+         : 'A leave-one-company-out check found this road-type pattern does not yet reliably generalize to a company not in the training data — treat rankings as directional, not precise. ')
       : 'Read it within a county: across metros the level can be off by about ×/÷2.6. ') +
     'Click a row to find the tract on the map.';
   $("#flags tbody").innerHTML = ranked.slice(0, 40).map(i => { const t = T[i];
