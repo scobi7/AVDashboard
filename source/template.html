@@ -1,13 +1,16 @@
+<!doctype html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>California AV Validation Gap</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Overpass+Mono:wght@400;600&display=swap">
 <style>
+/* Layout: one column of panels; the map panel pairs the map with a tract card that explains it. */
 :root{
   --bg:#f3f5f7; --surface:#ffffff; --ink:#15212c; --ink2:#4c5a67; --muted:#8a96a2; --line:#dce2e8;
-  --accent:#1f6fd1; --accent-soft:#dbe8f9; --gap:#d45a1f; --gap-soft:#fbe5d8; --other:#c2cbd4; --watch:#c99312;
+  --accent:#1f6fd1; --accent-soft:#dbe8f9; --cool:#86b0e8; --gap:#d45a1f; --gap-soft:#fbe5d8; --other:#c2cbd4; --watch:#c99312;
   --r0:#ffffb2; --r1:#fecc5c; --r2:#fd8d3c; --r3:#f03b20; --r4:#bd0026;
-  --cv0:#e3eefb; --cv1:#a9c9f2; --cv2:#6ea3e6; --cv3:#2f73cc; --cv4:#123f7d;
   --shadow:0 1px 2px rgba(21,33,44,.06),0 4px 16px rgba(21,33,44,.05);
   --display:"Overpass",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Overpass Mono",ui-monospace,"SF Mono",Consolas,monospace;
@@ -16,30 +19,38 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#0e1318; --surface:#151c23; --ink:#e5ecf2; --ink2:#a6b3bf; --muted:#6f7c88; --line:#26313b;
-    --accent:#5b9ef0; --accent-soft:#1b2e47; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
+    --accent:#5b9ef0; --accent-soft:#1b2e47; --cool:#2f5b8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
     --r0:#3d1f12; --r1:#7a3418; --r2:#c2571f; --r3:#f08a3c; --r4:#ffd166;
-    --cv0:#1a2a3d; --cv1:#1f4a7d; --cv2:#2f6fbf; --cv3:#6aa6ee; --cv4:#c6defa;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#0e1318; --surface:#151c23; --ink:#e5ecf2; --ink2:#a6b3bf; --muted:#6f7c88; --line:#26313b;
-  --accent:#5b9ef0; --accent-soft:#1b2e47; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
+  --accent:#5b9ef0; --accent-soft:#1b2e47; --cool:#2f5b8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
   --r0:#3d1f12; --r1:#7a3418; --r2:#c2571f; --r3:#f08a3c; --r4:#ffd166;
-  --cv0:#1a2a3d; --cv1:#1f4a7d; --cv2:#2f6fbf; --cv3:#6aa6ee; --cv4:#c6defa;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--display);font-size:15px;line-height:1.5}
 .wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:28px 56px;display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
-h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.005em}
+h1,h2,h3,h4{margin:0;text-wrap:balance;letter-spacing:-.005em}
 h1{font-size:clamp(26px,3.6vw,38px);font-weight:800;line-height:1.08}
 h2{font-size:19px;font-weight:700}
 h3{font-size:15px;font-weight:700}
 p{margin:0}
 .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2)}
+.infoicon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--ink2);
+  color:var(--ink2);font-size:10.5px;font-weight:700;font-family:var(--display);cursor:pointer;background:transparent;vertical-align:middle;margin-left:2px;flex:none}
+.infoicon:hover,.infoicon:focus-visible{border-color:var(--accent);color:var(--accent)}
+.moredetail{margin-top:2px}
+.moredetail summary{cursor:pointer;font-size:12.5px;color:var(--ink2);font-weight:600;list-style:none;display:flex;align-items:center;gap:5px;padding:2px 0}
+.moredetail summary::-webkit-details-marker{display:none}
+.moredetail summary::before{content:"▸";font-size:10px;transition:transform .15s}
+.moredetail[open] summary::before{transform:rotate(90deg)}
+.moredetail summary:hover{color:var(--ink)}
+.moredetail .inner{padding-top:12px}
 .lede{color:var(--ink2);max-width:68ch;font-size:15.5px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 header{display:grid;gap:10px}
@@ -48,67 +59,79 @@ header{display:grid;gap:10px}
 .sign i{display:inline-block;width:22px;height:14px;border-radius:3px;background:var(--accent);position:relative}
 .sign i::after{content:"";position:absolute;left:4px;right:4px;top:6px;height:2px;background:var(--surface);border-radius:1px}
 
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:4px;align-content:start}
 .stat .big{font-family:var(--mono);font-size:clamp(26px,3.4vw,34px);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
-.stat .big small{font-size:.5em;color:var(--ink2);font-weight:400}
+.stat .big small{display:block;font-size:13px;line-height:1.3;color:var(--ink2);font-weight:400;margin-top:3px;font-family:var(--display)}
 .stat p{color:var(--ink2);font-size:13.5px}
 .stat.gap .big{color:var(--gap)}
 .stat.cov .big{color:var(--accent)}
 
+/* guided findings: each card sets the map to show its claim */
+.findings{display:grid;gap:12px}
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px;grid-template-rows:auto 1fr auto}
+.fcard p{font-size:13.5px;color:var(--ink2)}
+.fcard p b{color:var(--ink);font-family:var(--mono);font-weight:600}
+.fcard .btn{justify-self:start}
+
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
-.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px}
-.mapcol{position:relative;border-right:1px solid var(--line);display:grid;grid-template-rows:auto 1fr auto}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 370px;height:min(900px,calc(100vh - 40px));min-height:720px}
+.mapcol{position:relative;border-right:1px solid var(--line);display:grid;grid-template-rows:auto auto auto 1fr auto;min-width:0;min-height:0;overflow-y:auto}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border:0;background:transparent;color:var(--ink2);cursor:pointer}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink)}
-.toolbar select,.side select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
-button:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toolbar select,.side select,.filterbar select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);max-width:100%}
+button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible,svg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .spacer{flex:1}
 .zoom button{font:inherit;font-weight:700;width:32px;height:30px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;cursor:pointer}
-.mapbox{position:relative;min-height:520px;touch-action:none}
+.filterbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.fgroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fgroup .eyebrow{font-size:10.5px}
+svg.hist{display:block;width:200px;height:42px;cursor:crosshair;touch-action:none}
+.rangein{width:60px;font-size:13px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:var(--mono)}
+.chk{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.fcount b{color:var(--ink);font-family:var(--mono);font-weight:600}
+.layerdesc{padding:8px 14px;font-size:12.5px;color:var(--ink2);border-bottom:1px solid var(--line)}
+.layerdesc b{color:var(--ink)}
+.mapbox{position:relative;min-height:540px;touch-action:none;overflow:hidden}   /* off-map metro labels must not widen the page */
 canvas#map{position:absolute;inset:0;width:100%;height:100%;cursor:grab;display:block}
 canvas#map.dragging{cursor:grabbing}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
-  padding:8px 10px;font-size:12.5px;min-width:190px;z-index:3;display:grid;gap:2px}
+  padding:8px 10px;font-size:12.5px;min-width:200px;max-width:260px;z-index:3;display:grid;gap:2px}
 .tip b{font-size:13px}
 .tip .row{display:flex;justify-content:space-between;gap:12px;color:var(--ink2)}
-.tip .row span:last-child{color:var(--ink);font-family:var(--mono)}
+.tip .row span:last-child{color:var(--ink);font-family:var(--mono);text-align:right}
 .tractcount{position:absolute;left:12px;bottom:12px;pointer-events:none;background:var(--surface);border:1px solid var(--line);
   border-radius:999px;box-shadow:var(--shadow);padding:5px 12px;font-size:12px;color:var(--ink2);z-index:3}
 .tractcount b{color:var(--ink);font-family:var(--mono)}
-.clickhint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);pointer-events:none;
-  background:var(--accent);color:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;
-  font-weight:600;box-shadow:var(--shadow);z-index:4;transition:opacity .2s,transform .2s}
-.clickhint.gone{opacity:0;transform:translateX(-50%) translateY(8px)}
 .metrolabel{position:absolute;pointer-events:none;font-weight:700;color:var(--ink);text-shadow:0 1px 3px var(--bg),0 0 10px var(--bg);
   transform:translate(-50%,-50%);white-space:nowrap;z-index:2;transition:opacity .15s linear}
-.colorkey{position:absolute;right:12px;top:12px;pointer-events:auto;background:var(--surface);border:1px solid var(--line);
-  border-radius:10px;box-shadow:var(--shadow);font-size:12px;color:var(--ink2);z-index:3;max-width:230px;cursor:pointer}
-.colorkey .ckhead{display:flex;align-items:center;gap:6px;padding:7px 10px;font-weight:700;color:var(--ink)}
-.colorkey .ckhead:after{content:"›";margin-left:auto;transition:transform .15s}
-.colorkey.open .ckhead:after{transform:rotate(90deg)}
-.colorkey .ckbody{padding:0 12px 10px;cursor:default}
-.colorkey:not(.open) .ckbody{display:none}
+.colorkey{position:absolute;right:12px;top:12px;pointer-events:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;box-shadow:var(--shadow);padding:9px 12px;font-size:12px;color:var(--ink2);z-index:3;max-width:230px}
 .colorkey .title{font-weight:700;color:var(--ink);margin-bottom:6px;display:block}
-.colorkey .ramp{width:100%;margin:4px 0}
-.colorkey .nums{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px}
-.colorkey .key{display:flex;margin-top:4px}
+.colorkey .nums{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11px}
+.colorkey .key{display:flex;margin-top:5px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);align-items:center}
 .key{display:inline-flex;align-items:center;gap:6px}
-.key i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.key i{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
 .legend .asof{flex-basis:100%;font-size:12px}
 .ramp{display:inline-flex;height:10px;width:120px;border-radius:3px;overflow:hidden}
 .ramp i{flex:1}
 
-.side{padding:16px 18px;display:grid;gap:14px;align-content:start}
+.side{padding:16px 18px;display:grid;gap:16px;align-content:start;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;width:max-content}
 .chip.auth{background:var(--gap-soft);color:var(--gap)}
 .chip.served{background:var(--accent-soft);color:var(--accent)}
 .chip.none{background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+.chip.flag{background:var(--gap-soft);color:var(--gap)}
+.chip.watch{background:var(--bg);color:var(--watch);border:1px solid var(--watch)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+button.chip{font:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink2)}
+button.chip[aria-pressed="true"]{border-color:currentColor}
+button.chip[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
 .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px}
 .kv dt{color:var(--ink2)}
 .kv dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
@@ -122,81 +145,150 @@ table.cmp td{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .note{font-size:13px;color:var(--ink2);border-left:3px solid var(--line);padding-left:10px}
 .note.find{border-color:var(--gap);color:var(--ink)}
 
+/* tract card: the product's answer for one place */
+.tcard{display:grid;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.tc-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.tc-head h3{font-size:16px;font-family:var(--mono);font-weight:600}
+.tc-head .where{font-size:12.5px;color:var(--ink2)}
+.tc-actions{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.ibtn{font:inherit;font-size:12px;font-weight:600;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer}
+.ibtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.lead{font-size:13.5px;line-height:1.55}
+.pctaxis svg{display:block;width:100%;height:auto}
+.pctaxis text{fill:var(--ink2);font-family:var(--mono);font-size:10px}
+.axkey{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--ink2)}
+.sec{display:grid;gap:6px}
+.sec h4{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.sec .hint{font-size:12px;color:var(--ink2)}
+.why{display:grid;gap:1px}
+.wrow{display:grid;grid-template-columns:116px minmax(0,1fr) 50px;gap:8px;align-items:center;font:inherit;font-size:12.5px;line-height:1.3;padding:4px 4px;border:0;background:transparent;color:var(--ink);cursor:pointer;text-align:left;border-radius:6px;width:100%}
+.wrow:hover{background:var(--bg)}
+.wrow .wv{font-family:var(--mono);text-align:right;font-size:12px}
+.wrow .q{display:block;color:var(--muted);font-size:10.5px}
+.wbar{position:relative;height:14px}
+.wbar .ax{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--ink2)}
+.wbar .fill{position:absolute;top:3px;height:8px;border-radius:2px}
+.wbar .wh{position:absolute;top:6.5px;height:1px;background:var(--ink)}
+.wrow.unsure .fill{opacity:.35}
+.wdetail{display:grid;gap:3px;padding:2px 4px 8px 10px;margin-left:6px;font-size:12px;color:var(--ink2);border-left:2px solid var(--line)}
+.wdetail .dh,.wdetail .dr{display:grid;grid-template-columns:minmax(0,1fr) auto auto 44px;gap:8px}
+.wdetail .dh{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+.wdetail .dr span:not(:first-child){font-family:var(--mono);text-align:right}
+.ev{font-size:13px;display:grid;gap:4px;color:var(--ink2)}
+.tc-sub{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+table.dlay td:first-child{font-family:var(--display);color:var(--ink)}
+table.dlay td .sm{display:block;font-size:11.5px;color:var(--ink2)}
+table.dlay .ok{color:var(--accent);font-weight:700}
+table.dlay .no{color:var(--muted)}
+.ev b{color:var(--ink)}
+.linkbtn{font:inherit;padding:0;border:0;background:none;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.empty{padding:14px 16px;border:1px dashed var(--line);border-radius:10px;font-size:13.5px;color:var(--ink2)}
+.tag{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+.tag.up{color:var(--gap);border-color:var(--gap)}
+.tag.dn{color:var(--accent);border-color:var(--accent)}
+
 .two{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:22px}
-.card{padding:18px 20px;display:grid;gap:10px;align-content:start}
-.card .sub{color:var(--ink2);font-size:13.5px;max-width:68ch}
-.card > .toolbar{padding:0;border:0;align-items:flex-end}
+.card{padding:18px 20px;display:grid;gap:10px;align-content:start;min-width:0}
+.card .sub{color:var(--ink2);font-size:13.5px;max-width:72ch}
+.btn{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
 .find{display:flex;gap:4px}
 .find input{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:170px}
-.btn,.find button{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
-.tablewrap{overflow-x:auto;max-height:420px;overflow-y:auto}
-table.flags thead th{position:sticky;top:0;background:var(--surface)}
+.find button{font:inherit;font-size:13px;font-weight:600;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+.tablewrap{overflow:auto;max-height:460px}
+table.flags thead th{position:sticky;top:0;background:var(--surface);z-index:1}
+table.flags th button{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+table.flags th[aria-sort="descending"] button::after{content:" ↓"}
+table.flags th[aria-sort="ascending"] button::after{content:" ↑"}
 table.flags tbody tr{cursor:pointer}
 table.flags tbody tr:hover td,table.flags tbody tr:focus td{background:var(--gap-soft)}
+table.flags tbody tr.sel td{background:var(--accent-soft)}
 table.flags td:nth-child(2),table.flags th:nth-child(2){text-align:left}
 table.flags td:nth-child(2){font-family:inherit;color:var(--ink2)}
-table.flags td.rng{color:var(--ink2);font-size:12px}
-.chip.flag{background:var(--gap-soft);color:var(--gap)}
-.chip.watch{background:var(--bg);color:var(--watch);border:1px solid var(--watch)}
-.tcard{display:grid;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--line)}
-.tcard h3{margin:0;font-size:15px}
+table.flags td.rng,table.flags td.sm{color:var(--ink2);font-size:12px}
 .chart{width:100%;overflow-x:auto}
 .chart svg{display:block;width:100%;height:auto;min-width:520px}
 .chart svg text{fill:var(--ink2);font-family:var(--display);font-size:11.5px}
 .chart svg .lab{fill:var(--ink);font-size:12.5px;font-weight:600}
 .chart svg .mono{font-family:var(--mono);font-size:11px}
+.chart [data-tip]{cursor:default}
+.chart [data-tip]:hover .hov{fill:var(--bg)}
 .ckey{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink2)}
+.ctip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
+  padding:7px 10px;font-size:12.5px;color:var(--ink);max-width:300px;z-index:20}
 
-.method{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:20px}
+.drivers{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:26px;padding:20px}
+.drivers .txt{display:grid;gap:14px;align-content:start}
+.drivers .txt div{display:grid;gap:4px}
+.drivers .txt p{font-size:13.5px;color:var(--ink2)}
+.drivers .txt p b{color:var(--ink)}
+
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;padding:20px}
 .method div{display:grid;gap:6px;align-content:start}
 .method p{font-size:13.5px;color:var(--ink2)}
 footer{font-size:12.5px;color:var(--muted);display:grid;gap:4px}
 footer a{color:var(--ink2)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);
+  padding:9px 14px;border-radius:8px;font-size:13px;box-shadow:var(--shadow);z-index:30;max-width:min(92vw,520px)}
+.toast input{font-family:var(--mono);font-size:12px;width:100%;margin-top:6px;padding:4px 6px;border:0;border-radius:4px}
 
 @media (max-width:980px){
-  .mapgrid{grid-template-columns:minmax(0,1fr)}
+  .mapgrid{grid-template-columns:minmax(0,1fr);height:auto;min-height:0}
+  .side{overflow:visible}
   .mapcol{border-right:0;border-bottom:1px solid var(--line)}
-  .two{grid-template-columns:1fr}
+  .two,.drivers{grid-template-columns:minmax(0,1fr)}
   .method{grid-template-columns:1fr}
+  .stats,.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (max-width:640px){
-  .stats{grid-template-columns:1fr}
-  .find input{width:130px}
+  .stats,.fgrid{grid-template-columns:1fr}
   .seg{flex-wrap:wrap}
   .find{flex:1 1 100%}
-  .find input{flex:1}
-  .mapbox{min-height:420px}
+  .find input{flex:1;width:auto}
+  .mapbox{min-height:440px}
+  svg.hist{width:120px}
+  .colorkey{max-width:170px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 
 <div class="wrap">
   <header>
     <span class="sign"><i></i>AV Validation Gap · California</span>
-    <h1>Where are driverless-car disengagements most likely?</h1>
-    <p class="lede">Expected autonomous vehicle (AV) collisions for every census tract in San Francisco, Los Angeles and Santa Clara.
-      The model is trained on Waymo's 2025–26 collision filings to the CPUC and checked against an independent record: the DMV's 2019–24 crash reports from every company.
-      Scores are relative (a 1–100 percentile with a 90% range). They rank places; they do not rate whether AVs are safe.</p>
+    <h1>Where would a driverless car most need a human to take over?</h1>
+    <p class="lede" id="lede">When a self-driving test car meets something it can't handle, a human takes over.
+      This map turns California's disengagement reports into a <b>disengagement risk per mile</b> for every census tract in San Francisco and Los Angeles.
+      Scores are relative, not a safety rating — click any tract to see why.</p>
   </header>
 
   <section class="stats" aria-label="Headline figures">
-    <div class="stat cov"><div class="eyebrow">Census tracts scored</div>
+    <div class="stat cov"><div class="eyebrow">Disengagement reports behind the map</div>
       <div class="big" id="s-listed">–</div><p id="s-listed-p"></p></div>
+    <div class="stat"><div class="eyebrow">Takeover risk per mile</div>
+      <div class="big" id="s-check">–</div><p id="s-check-p"></p></div>
     <div class="stat"><div class="eyebrow">Two crash records agree</div>
-      <div class="big">ρ 0.49 <small>and 0.39</small></div>
-      <p>A model trained on the DMV's 2019–24 crash reports ranks Waymo's 2025–26 CPUC collisions within each county (0.49), and the reverse holds too (0.39). Different regulators, years and operators. Both are weaker in Los Angeles (0.46 and 0.19) than in San Francisco (0.54 and 0.42).</p></div>
+      <div class="big">0.49 <small>match score, cross-checked</small></div>
+      <p>Two independent crash records — different regulators, years, operators — rank the same tracts similarly.</p></div>
     <div class="stat gap"><div class="eyebrow">Beyond this map</div>
       <div class="big" id="s-gap">–</div><p id="s-gap-p"></p></div>
   </section>
 
-  <section class="panel mapgrid" aria-label="Coverage map">
+  <section class="findings" aria-label="What the map shows">
+    <div><div class="eyebrow">Start here</div><h2>What this map shows</h2></div>
+    <div class="fgrid" id="findings"></div>
+  </section>
+
+  <section class="panel mapgrid" aria-label="Crash-risk map" id="mapsec">
     <div class="mapcol">
       <div class="toolbar">
-        <a href="/*__LANDING__*/#" style="font-size:12px;color:var(--ink2);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap">← All dashboards</a>
-        <div class="seg" role="group" aria-label="Colour tracts by">
-          <button id="m-risk" aria-pressed="true">Disengagement risk</button>
-          <button id="m-stat" aria-pressed="false">Validation status</button>
-          <button id="m-cov" aria-pressed="false">Filings</button>
+        <div class="seg" role="group" aria-label="Quick layers">
+          <button id="q-dis" data-layer="dis" aria-pressed="true">Disengagement risk</button>
+          <button id="q-risk" data-layer="risk" aria-pressed="false">Crash risk</button>
+          <button id="q-stat" data-layer="stat" aria-pressed="false">Validation status</button>
+        </div>
+        <select id="layer" aria-label="Colour tracts by"></select>
+        <div class="seg" id="viewmode" role="group" aria-label="Disengagement risk resolution" hidden>
+          <button type="button" id="vm-tract" data-view="tract" aria-pressed="true">Tract</button>
+          <button type="button" id="vm-cell" data-view="cell" aria-pressed="false">Grid cell</button>
         </div>
         <span class="spacer"></span>
         <form id="find" class="find" role="search">
@@ -208,99 +300,131 @@ footer a{color:var(--ink2)}
           <option value="ca" selected>California</option>
           <option value="la">Los Angeles</option>
           <option value="sf">San Francisco</option>
-          <option value="sc">Santa Clara</option>
         </select>
         <span class="zoom"><button id="zin" aria-label="Zoom in">+</button> <button id="zout" aria-label="Zoom out">−</button></span>
       </div>
+      <div class="filterbar" role="group" aria-label="Filter tracts">
+        <div class="fgroup">
+          <span class="eyebrow" id="hist-lab">Crash risk</span>
+          <svg class="hist" id="hist" viewBox="0 0 200 42" aria-labelledby="hist-lab" role="img"></svg>
+          <input class="rangein" id="flo" type="number" min="1" max="100" value="1" aria-label="Lowest crash-risk percentile">
+          <span>–</span>
+          <input class="rangein" id="fhi" type="number" min="1" max="100" value="100" aria-label="Highest crash-risk percentile">
+        </div>
+        <div class="fgroup chips" id="fstatus" role="group" aria-label="Validation status"></div>
+        <select id="fcounty" aria-label="County"></select>
+        <label class="chk"><input type="checkbox" id="freliable" checked> Hide extrapolated</label>
+        <span class="fcount" id="fcount"></span>
+        <span class="spacer"></span>
+        <button class="btn" id="freset" type="button">Reset</button>
+        <button class="btn" id="copylink" type="button">Copy link to this view</button>
+      </div>
+      <p class="layerdesc" id="layerdesc"></p>
       <div class="mapbox" id="mapbox">
-        <canvas id="map" tabindex="0" aria-label="Map of California census tracts. Drag to pan, scroll to zoom, click a tract to open its county."></canvas>
+        <canvas id="map" tabindex="0" aria-label="Map of census tracts. Drag to pan, scroll to zoom, click a tract to explain its score."></canvas>
         <div class="tip" id="tip" hidden></div>
         <div class="tractcount" id="tractcount"></div>
         <div class="colorkey" id="colorkey" hidden></div>
         <div id="metrolabels"></div>
-        <div class="clickhint" id="clickhint">Click a tract for its score, range, and why</div>
       </div>
       <div class="legend" id="legend"></div>
     </div>
-    <aside class="side" id="side" aria-live="polite">
+    <aside class="side" id="side">
+      <div id="tbody" aria-live="polite"></div>
       <div style="display:grid;gap:6px">
         <label class="eyebrow" for="county">County</label>
         <select id="county"></select>
       </div>
-      <div id="tbody" hidden></div>
       <div id="cbody" style="display:grid;gap:14px"></div>
     </aside>
   </section>
 
-  <section class="panel card" aria-label="Flag list">
-    <div class="toolbar">
+  <section class="panel card" aria-label="Ranked tracts">
+    <div class="toolbar" style="padding:0;border:0;align-items:flex-end">
       <div>
-        <div class="eyebrow">Disengagement-risk model · ranked</div>
-        <h2>Highest disengagement-risk tracts</h2>
+        <div class="eyebrow">Disengagement risk and crash risk · follows the map's filters</div>
+        <h2>Tracts ranked</h2>
       </div>
       <span class="spacer"></span>
-      <select id="flagw" aria-label="Which tracts">
-        <option value="all">All tracts</option>
-        <option value="unserved">Not yet in the service area</option>
-      </select>
-      <select id="flagc" aria-label="Filter by county"></select>
       <button id="flagcsv" class="btn" type="button">Download CSV</button>
       <button id="flaggeo" class="btn" type="button" title="Tract centroids with the same fields, for ArcGIS or QGIS">GeoJSON</button>
     </div>
     <p class="sub" id="flag-sub"></p>
     <div class="tablewrap"><table class="cmp flags" id="flags">
-      <thead><tr><th>Tract</th><th>County</th><th>Residents</th><th title="Percentile of expected collisions at a standard service level, within this map">Disengagement risk</th>
-        <th title="90% interval from refitting on resampled neighbourhoods">90% range</th>
-        <th title="Percentile from the second model, trained on DMV crash reports 2019–24 from every company">Second model</th><th>Status</th></tr></thead>
+      <thead><tr id="flaghead"></tr></thead>
       <tbody></tbody></table></div>
   </section>
 
-  <section class="two">
+  <section class="panel drivers" aria-label="What drives disengagement risk" id="dissec" style="grid-template-columns:minmax(0,1fr)">
+    <div style="display:grid;gap:10px;align-content:start;min-width:0">
+      <div class="eyebrow">Disengagement risk · the specialised layers</div>
+      <h2>Each road situation is its own model, checked against police-reported crashes</h2>
+      <p class="sub" style="color:var(--ink2);font-size:13.5px">One row per road situation. Right of the line means that situation is checked against real police-crash data and holds up.
+        <button type="button" class="infoicon" data-tip="One row per layer: the road situation DMV reports name, the mapped feature its rate scales with, and how many reports name it. The dot checks it against real police crash records (CCRS 2022–24, four counties): does that kind of crash happen more often in places with more of this feature? Right of the line (1×) means yes, with its likely range." aria-label="More about how this chart is built">i</button></p>
+      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Raises its own crash type</span>
+        <span class="key"><i style="background:var(--muted)"></i>Not specific</span></div>
+      <div class="chart" id="dislayers"></div>
+    </div>
+  </section>
+
+  <section class="panel drivers" aria-label="What drives the crash-risk map" style="grid-template-columns:minmax(0,1fr)">
+    <div style="display:grid;gap:10px;align-content:start;min-width:0">
+      <div class="eyebrow">Crash-risk model · what it responds to</div>
+      <h2>What drives the crash-risk map</h2>
+      <p class="sub" style="color:var(--ink2);font-size:13.5px">Each row is a feature of a tract; longer bars move the crash-risk score more.
+        <button type="button" class="infoicon" data-tip="Each row: how much expected collisions change moving from a low tract (bottom quarter) to a high one (top quarter) for that feature, among tracts on this map. Bar: likely range from re-testing the model 200 times." aria-label="More about how this chart is built">i</button></p>
+      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Main model (CPUC 2025–26)</span>
+        <span class="key"><i style="width:18px;height:6px;border-radius:3px;background:var(--accent);opacity:.35"></i>90% range</span>
+        <span class="key"><i style="border-radius:1px;transform:rotate(45deg);width:8px;height:8px;border:1.5px solid var(--ink2);background:transparent"></i>Second model (DMV 2019–24)</span></div>
+      <div class="chart" id="drivers"></div>
+    </div>
+  </section>
+
+  <section class="two" style="grid-template-columns:minmax(0,1fr)">
     <div class="panel card">
       <div class="eyebrow">Risk layer · model output</div>
-      <h2>Expected miles per disengagement, next reporting year</h2>
-      <p class="sub">Companies with at least one 2024 disengagement and 1,000+ miles. Empirical-Bayes rate from CA DMV filings 2020–2024: each company's recent miles, weighed against the fleet.
-        The bar is the 90% range, and it includes the 2–3× year-to-year swings companies actually show. Further right is better.</p>
+      <h2>Expected miles per disengagement by company, the year after the record ends</h2>
+      <p class="sub">Companies with at least one 2024 disengagement and 1,000+ miles. Further right is better.
+        <button type="button" class="infoicon" data-tip="Empirical-Bayes rate from CA DMV filings 2020–2024: each company's recent miles, weighed against the fleet. The bar is the 90% range, and it includes the 2–3× year-to-year swings companies actually show." aria-label="More about how this chart is built">i</button></p>
       <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Model estimate</span>
         <span class="key"><i style="background:transparent;border:2px solid var(--ink2)"></i>2024 filed rate</span>
         <span class="key"><i style="width:18px;height:4px;border-radius:2px;background:var(--r1)"></i>90% range</span></div>
       <div class="chart" id="risk"></div>
     </div>
-    <div class="panel card">
-      <div class="eyebrow">Coverage layer · observed</div>
-      <h2>Tracts in driverless deployment filings</h2>
-      <p class="sub">Tracts listed each month in CPUC filings (Waymo and Cruise). Until the counts were redacted in 2025,
-        the filings also showed how many of those tracts had any trip.</p>
-      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Listed in filing</span>
-        <span class="key"><i style="background:var(--gap)"></i>Listed and had ≥1 trip</span></div>
-      <div class="chart" id="series"></div>
-    </div>
   </section>
 
-  <section class="panel method" aria-label="How to read this">
+  <section class="panel card" aria-label="How to read this">
+    <details class="moredetail"><summary>Methodology notes and limits</summary>
+    <div class="inner method">
     <div><h3>“Listed” is an upper bound</h3>
       <p>A tract counts as covered when an operator lists it in its CPUC monthly filing. Before March 2024, 95–98% of the ~250 listed San Francisco tracts had trips.
         When the footprint expanded to 1,498 tracts, only 13–40% had any trip (Mar–Dec 2024): newly authorised areas are listed long before they are driven. Blue means authorised service area. It does not mean tested.</p></div>
     <div><h3>No record is not the same as dangerous</h3>
-      <p>A Flag means the public has no driverless safety evidence from places like this one: it is a statement about evidence.
-        San Francisco's transportation authority has proposed opening each new geography to an operator only after it shows a performance record (SFCTA permitting framework, 2025); Flags mark where no public record of that kind exists yet.
-        Place risk comes from a Waymo collision model using census and OpenStreetMap road features (2025–26; held-out deviance −39 to −44% on unseen neighbourhoods; city ranking matches NHTSA crash reports, ρ 0.74; and, out of time, it ranks where 2019–24 DMV-reported AV crashes happened, ρ 0.39 within county, including a different operator's). Read it as a ranking with a 90% range, and rank within a county: across metros the level can be off by about ×/÷2.6.
+      <p>An Untested status means the public has no driverless safety evidence from places like this one: it is a statement about evidence.
+        San Francisco's transportation authority has proposed opening each new geography to an operator only after it shows a performance record (SFCTA permitting framework, 2025); Untested marks where no public record of that kind exists yet.
+        Place risk comes from a Waymo collision model using census and OpenStreetMap road features (2025–26; held-out deviance −39 to −44% on unseen neighbourhoods; city ranking matches NHTSA crash reports, 0.74 of 1.00; and, out of time, it ranks where 2019–24 DMV-reported AV crashes happened, 0.39 of 1.00 within county, including a different operator's). Read it as a ranking with a 90% range, and rank within a county: across metros the level can be off by about ×/÷2.6.
         It is not a count forecast. The model counts all reported collisions,
-        whoever was at fault, so it measures exposure to conflict and assigns no blame.
-        It predicts crashes where another road user hit the AV (ρ 0.37) better than ones where the AV hit someone (ρ 0.15, only 30 cases) — treat it as exposure, not fault, for both directions.</p></div>
-    <div><h3>Disengagement reporting has ended</h3>
-      <p>California replaced disengagement reports with new metrics from 1 July 2026, so 2020–2024 is a closed record.
-        The risk layer describes the era of supervised testing and should not be read as a current safety rating.</p></div>
-    <div><h3>Checked against satellite imagery</h3>
-      <p>Google's AlphaEarth embeddings can't see crosswalks directly (R² 0.09 against OSM crossing density), but using them as an independent feature source instead of OSM, 85% of flagged tracts statewide are flagged again — a second check the Flag list holds up.</p></div>
+        whoever was at fault, so it measures exposure to conflict and assigns no blame. Read by local LLMs, the crash reports say another road user moved into the AV in 77–93% of autonomous-mode crashes.</p></div>
+    <div><h3>Disengagement risk is a relative index from a closed record</h3>
+      <p>California replaced disengagement reports with new metrics from 1 July 2026, so the 2020–2024 reports are a closed record.
+        The disengagement-risk map and the company chart describe the era of supervised testing: read them as where test vehicles needed a human most, relative to an average California road mile, not as a current safety rating or a forecast of takeovers.
+        Every value carries a 90% range from simulating the uncertainty in the company estimates, the freeway rate, how unnamed reports are treated and how strongly each feature scales.</p></div>
+    <div><h3>Synthetic data cannot fill the gap</h3>
+      <p>With no new reports coming, we tested synthetic data made with 2025–26 methods (notebooks 18–21). Simulated futures show that a newly served county's own crash record needs <span id="m-fut">about two years</span> to test this map.
+        Synthetic tract tables from five modern generators never stood in for real tracts: the best (ForestFlow) added about 1 point of held-out fit to the crash model, with every 90% interval including zero, and copula or ARF tables cost it 8.6–10.4 points.
+        Synthetic rows labelled by the real-data model lifted a weaker model (a neural network, 0.27 to 0.53) only up to the model itself (0.55). The map therefore uses real records only.</p></div>
+    </div></details>
   </section>
 
   <footer>
     <span>Sources: CPUC AV deployment quarterly filings (Mar 2022 – <span id="asof"></span>); CPUC decision of 14 Aug 2026 (18 counties);
-      CA DMV disengagement and mileage reports 2020–2024 (incl. first-time filers); DMV collision reports 2019–2024 via Xu, Jiao &amp; Chen (2025), re-geocoded; NHTSA SGO 2021-01; OpenStreetMap (Geofabrik); ACS 2019–2023 5-year estimates; Census 2023 TIGER/gazetteer.</span>
-    <span>UC Berkeley capstone · AV Validation Gap team · MVP build from notebooks 02–08.</span>
+      CA DMV disengagement and mileage reports 2020–2024 (incl. first-time filers); DMV collision reports 2019–2024 via Xu, Jiao &amp; Chen (2025), re-geocoded; NHTSA SGO 2021-01; ACS 2019–2023 5-year estimates; Census 2023 TIGER/gazetteer; Caltrans traffic counts (AADT). Crash and disengagement narratives read by Qwen3.5-9B and Gemma 4 12B, run locally.</span>
+    <span>Road features: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, available under the Open Database License (ODbL), via Geofabrik.</span>
+    <span>UC Berkeley capstone · AV Validation Gap team · MVP build from notebooks 02–21 (synthetic-data tests: notebooks 18–21).</span>
   </footer>
 </div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="ctip" id="ctip" hidden></div>
 
 <script>
 const D = /*__DATA__*/null;
@@ -309,48 +433,249 @@ const fmt = n => n == null ? "–" : Math.round(n).toLocaleString("en-US");
 const pct = (v, d = 0) => v == null ? "–" : (100 * v).toFixed(d) + "%";
 const money = v => v == null ? "–" : "$" + Math.round(v / 1000) + "k";
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const ord = v => v == null ? "–" : v + ((v % 100 >= 11 && v % 100 <= 13) ? "th" : (["th","st","nd","rd"][v % 10] || "th"));
+const xf = lv => { const m = Math.exp(lv); return "×" + (m >= 10 ? m.toFixed(0) : m >= 2 ? m.toFixed(1) : m.toFixed(2)); };
+const listAnd = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a.at(-1);
 
 // tract tuple: [lon, lat, countyIdx, pop, income, hisp, black, noveh, served, geoid,
 //               status (0 Covered, 1 Watch, 2 Flag, 3 Not authorised), riskIndex, analogueCov, ood, riskReliable,
 //               riskLo, riskHi (90% cluster-bootstrap interval), city,
 //               DMV-reported AV crashes 2019-24: autonomous mode, all modes (fractional at tract boundaries),
-//               crash-risk percentile, its 90% range (lo, hi), percentile from the second (DMV-trained) model]
+//               crash-risk percentile, its 90% range (lo, hi), percentile from the second (DMV-trained) model,
+//               months in a filing (any operator, 2022-26), first month in a filing]
 const T = D.tracts, TP = D.tractPolys || [], AUTH = new Set(D.authorised), OUTLINE = D.outline || [];
-const POLY_Z = 5; // below this zoom, tracts are too small on screen for real shapes to read - use dots
-const TPBOUNDS = TP.map(p => { if (!p) return null; let a = p[0][0], b = p[0][0], c = p[0][1], d = p[0][1];
-  for (const [lon, lat] of p){ if (lon < a) a = lon; if (lon > b) b = lon; if (lat < c) c = lat; if (lat > d) d = lat; } return [a, b, c, d]; });
-function pointInPoly(lon, lat, ring){
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++){
-    const [xi, yi] = ring[i], [xj, yj] = ring[j];
-    if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
+// notebook 13: each tract's log risk index = constant + sum_j coef_j * (feature_j - typical listed tract_j), exactly
+const EX = D.explain, F = EX.features, LAB = EX.labels, FAM = Object.keys(EX.families);
+const FAM_IDX = FAM.map(k => EX.families[k].map(f => F.indexOf(f)));
+const COEF = F.map(f => EX.coef[f]), COEF2 = F.map(f => EX.coef_second[f]), REF = F.map(f => EX.reference[f]);
+const BOOT = EX.boot, FEAT = D.feat, OBS = D.obs, ANAL = D.anal, OFFC = D.offCounties || [], FILED = new Set(D.filedCounties || []);
+// notebook 17: disengagement risk per mile, a separate model from the supervised-testing era (no crash data)
+const DIS = D.dis || T.map(() => null), DM = D.disMeta || {};
+// notebook 17's 500 m grid cells: [lon, lat, risk per mile, 90% lo, hi, reports/1,000mi, largest layer]
+const CELLS = D.disCells || [];
+// notebook 19: what a newly served county’s own crash record would show, from simulated futures
+const FUT = D.futures || null;
+// first checkpoint at which a Flag-type difference is found in 80% of futures, in words
+const futWhen = () => { if (!FUT) return null; const u = FUT.power["unlike places differ"].slope;
+  const k = Object.keys(u).map(Number).sort((a, b) => a - b).find(q => u[q] >= .8);
+  return k == null ? "more than " + Math.max(...Object.keys(u).map(Number)) / 4 + " years" : k % 4 ? k + " quarters" : k === 4 ? "a year" : ["", "a year", "two years", "three years"][k / 4] || k / 4 + " years"; };
+const futLine = () => { if (!FUT) return ""; const c = FUT.collisions_median, u = FUT.power["unlike places differ"].slope, q = k => Math.round(c[k]);
+  return "in " + FUT.futures_per_scenario + " simulated futures of a newly served county (" + FUT.new_tracts + " tracts in " + FUT.county + ", notebook 19), its own record held about " + q(4) + " collisions after one year and " + q(8) + " after two. A difference of the kind an Untested status warns about showed up in " + pct(u[4]) + " of futures after one year and " + pct(u[8]) + " after two."; };
+const xr = v => v == null ? "–" : v.toFixed(2) + "×";
+const pctRel = v => { if (v == null) return "–"; const p = Math.round(Math.abs(v - 1) * 100); return p + (v >= 1 ? "% higher" : "% lower"); };
+const pctCI = (lo, hi) => { if (lo == null || hi == null) return "–"; const a = Math.round((lo - 1) * 100), b = Math.round((hi - 1) * 100);
+  const word = v => v >= 0 ? v + "% higher" : Math.abs(v) + "% lower";
+  if (a >= 0 && b >= 0) return a + "–" + b + "% higher";
+  if (a < 0 && b < 0) return Math.abs(b) + "–" + Math.abs(a) + "% lower";
+  return word(a) + " to " + word(b); };
+// past ~3x, percentages stop reading as a quantity ("2487% higher") - switch to a plain multiplier instead
+const EXTREME = 3;
+const isExtreme = v => v == null ? false : (v >= EXTREME || v <= 1 / EXTREME);
+function relText(v, lo, hi, baseline){
+  if (v == null) return "–";
+  // switch the whole phrase to × if ANY of the center or either bound is extreme, so the range never
+  // reads as a percentage this large even when the headline number looks tame
+  if (isExtreme(v) || isExtreme(lo) || isExtreme(hi)) return xr(v) + " " + baseline + (lo != null && hi != null ? " (likely " + xr(lo) + "–" + xr(hi) + ")" : "");
+  const range = (lo != null && hi != null) ? " (CI: " + pctCI(lo, hi) + ")" : "";
+  return pctRel(v) + " than " + baseline + range;
 }
-const METRO_LABELS = [{ name:"Los Angeles", lon:-118.3, lat:34.02 }, { name:"San Francisco", lon:-122.44, lat:37.76 }, { name:"Santa Clara", lon:-121.89, lat:37.2 }]
+const FAMNOUN = { "Tract size":"size", "Housing and density":"housing", "How residents travel":"commuting", "Income":"income",
+  "Street network":"street network", "Crossings and signals":"crossings and signals" };
+const PHRASE = {
+  log_land:["a large area","a small area"], log_density:["many residents per square mile","few residents per square mile"],
+  pct_multiunit:["many multi-unit homes","few multi-unit homes"], pct_transit:["many transit commuters","few transit commuters"],
+  pct_walk_bike:["many people walking or cycling to work","few people walking or cycling to work"],
+  pct_no_vehicle:["many households without a car","few households without a car"], log_income:["high incomes","low incomes"],
+  log_road_density:["a dense road network","a sparse road network"], share_arterial:["a high share of arterial roads","few arterial roads"],
+  share_freeway:["freeway mileage","little or no freeway"], share_bike:["many bike lanes","few bike lanes"],
+  log_crossing_density:["many marked crossings","few marked crossings"], log_signal_density:["many traffic signals","few traffic signals"] };
+const quant = (s, p) => { const h = (s.length - 1) * p, a = Math.floor(h); return s[a] + (s[Math.min(a + 1, s.length - 1)] - s[a]) * (h - a); };
+const rawOf = (f, v) => { const tr = LAB[f][2]; return v == null ? null : tr === "exp" ? Math.exp(v) : tr === "expm1" ? Math.expm1(v) : v; };
+function showRaw(f, x){
+  if (x == null) return "–";
+  const [, unit, tr] = LAB[f];
+  if (tr === "pct") return (100 * x).toFixed(x < .095 && x > 0 ? 1 : 0) + "%";
+  if (unit === "$") return money(x);
+  if (unit === "sq mi") return (x < 1 ? x.toFixed(2) : x.toFixed(1)) + " sq mi";
+  return fmt(x) + " " + unit.replace("residents ", "");
+}
+
+const METRO_LABELS = [{ name:"Los Angeles", lon:-118.3, lat:34.02 }, { name:"San Francisco", lon:-122.44, lat:37.76 }]
   .map(m => ({ ...m, n: T.reduce((a, t) => a + (t[2] >= 0 && D.counties[t[2]] === m.name ? 1 : 0), 0),
     el: Object.assign(document.createElement("div"), { className:"metrolabel" }) }));
 METRO_LABELS.forEach(m => $("#metrolabels").appendChild(m.el));
-const STATUS = ["Covered", "Watch", "Flag", "Not authorised"];
+const STATUS = ["Covered", "Similarly tested", "Untested", "Not authorised"];
 const STATUS_VAR = ["var(--accent)", "var(--watch)", "var(--gap)", "var(--ink2)"];
 const STATUS_TXT = [
-  "Listed in a deployment filing: authorised service area.",
-  "Authorised and not listed, but places with a similar built environment have been driven.",
-  "Authorised and not listed, and places like it have barely been driven, or it lies outside the conditions driven so far. In the terms of SFCTA's 2025 permitting framework: no public performance record for this kind of place yet.",
+  "Listed in a deployment filing: authorised service area. Listing does not mean every street has been driven.",
+  "Authorised and not listed, but places with a similar built environment have been listed.",
+  "Authorised and not listed, and places like it have barely been listed, or it lies outside the conditions driven so far. In the terms of SFCTA's 2025 permitting framework: no public performance record for this kind of place yet.",
   "Not in the Aug 2026 authorisation."];
 const x2 = v => v == null ? "–" : (+v).toFixed(2);
-const x1 = v => v == null ? "–" : (+v < 10 ? (+v).toFixed(2) : (+v).toFixed(1));
-const range = t => t[15] == null ? "" : x1(t[15]) + "–" + x1(t[16]) + "×";
 const isAuth = t => t[2] >= 0 && AUTH.has(D.counties[t[2]]);
+const hasStatus = [0, 1, 2, 3].filter(s => T.some(t => t[10] === s));
+
+/* ---------------- explanations (notebook 13) ---------------- */
+// log contribution of each feature: coef * (this tract - base), base = typical listed tract or another tract
+function contrib(i, base){ const x = FEAT[i], y = base == null ? REF : FEAT[base]; return x.map((v, j) => COEF[j] * (v - y[j])); }
+// one entry per family: log factor, its 90% range over the 200 bootstrap refits, and the feature that leads it
+function explain(i, base = null){
+  if (!FEAT[i] || (base != null && !FEAT[base])) return null;
+  const c = contrib(i, base), y = base == null ? REF : FEAT[base], d = FEAT[i].map((v, j) => v - y[j]);
+  return FAM.map((name, k) => {
+    const js = FAM_IDX[k], v = js.reduce((a, j) => a + c[j], 0);
+    const bs = BOOT.map(b => js.reduce((a, j) => a + b[j] * d[j], 0)).sort((p, q) => p - q);
+    const lo = quant(bs, .05), hi = quant(bs, .95);
+    const same = js.filter(j => Math.sign(c[j]) === Math.sign(v));
+    const lead = (same.length ? same : js).slice().sort((a, b) => Math.abs(c[b]) - Math.abs(c[a]))[0];
+    return { name, k, v, lo, hi, stable: lo > 0 || hi < 0, lead, high: FEAT[i][lead] > y[lead], feats: js.map(j => ({ j, c: c[j] })) };
+  });
+}
+function totalRange(i, base){
+  const y = base == null ? REF : FEAT[base], d = FEAT[i].map((v, j) => v - y[j]);
+  const bs = BOOT.map(b => b.reduce((a, bj, j) => a + bj * d[j], 0)).sort((p, q) => p - q);
+  return [quant(bs, .05), quant(bs, .95)];
+}
+const phrase = e => PHRASE[F[e.lead]][e.high ? 0 : 1];
+const logRisk = i => EX.constant + contrib(i).reduce((a, b) => a + b, 0);
+function topFactor(i){
+  const E = explain(i); if (!E) return null;
+  const s = E.filter(e => e.stable).sort((a, b) => Math.abs(b.v) - Math.abs(a.v))[0];
+  return s && Math.abs(s.v) >= Math.log(1.25) ? s : null;
+}
+function summaryText(i){
+  const t = T[i], E = explain(i);
+  if (!E || t[20] == null) return "No crash-risk score: census or road data for this tract are missing.";
+  const big = E.filter(e => e.stable && Math.abs(e.v) >= Math.log(1.25));
+  const up = big.filter(e => e.v > 0).sort((a, b) => b.v - a.v).slice(0, 2), dn = big.filter(e => e.v < 0).sort((a, b) => a.v - b.v).slice(0, 2);
+  const ph = e => "its " + FAMNOUN[e.name] + " (" + phrase(e) + ", " + xf(e.v) + ")";
+  let s = "<b>" + relText(t[11], t[15], t[16], "a typical listed tract") + "</b>. ";
+  if (up.length) s += "Raised most by " + listAnd(up.map(ph)) + (dn.length ? "; lowered by " + listAnd(dn.map(ph)) : "") + ".";
+  else if (dn.length) s += "Lowered by " + listAnd(dn.map(ph)) + ".";
+  else s += "No factor moves it far from a typical listed tract.";
+  if (!t[14]) s += " <b>It lies outside the conditions driven so far, so the score is an extrapolation.</b>";
+  return s;
+}
 
 /* ---------------- headline figures ---------------- */
 (function stats(){
-  const served = T.filter(t => t[8]).length, X = D.context;
-  $("#s-listed").innerHTML = fmt(T.length) + ' <small>' + X.scope + '</small>';
-  $("#s-listed-p").textContent = "Each has a disengagement-risk percentile with a 90% range. " + fmt(served) + " are in Waymo's current service area (CPUC filing, " + D.asOf + "); the rest are scored as if served at a typical level.";
-  $("#s-gap").innerHTML = X.noFiling + ' <small>of ' + X.authorised + ' counties</small>';
-  $("#s-gap-p").textContent = "The CPUC authorised driverless service in " + X.authorised + " counties on 14 Aug 2026. " + X.noFiling + " have no deployment filing, so " + (X.noFilingResidents / 1e6).toFixed(1) + "M residents have no local crash record to model.";
+  const served = T.filter(t => t[8]).length, X = D.context, nd = DIS.filter(Boolean).length;
+  if (DM.reports){
+    $("#s-listed").innerHTML = fmt(DM.reports) + ' <small>' + DM.companies + ' companies, 2020–24</small>';
+    $("#s-listed-p").textContent = fmt(nd) + " tracts (" + X.scope + ") get a risk per mile; " + fmt(served) + " are in Waymo's current service area.";
+    $("#s-check").innerHTML = DM.rhoCrashPerKm.toFixed(2) + ' <small>of 1.00, vs. real crashes</small>';
+    $("#s-check-p").textContent = "Built on disengagement reports and road features. Matches where real AV crashes happened at " + DM.rhoCrashPerKm.toFixed(2) + " of 1.00.";
+  } else {
+    $("#s-listed").innerHTML = fmt(T.length) + ' <small>' + X.scope + '</small>';
+    $("#s-listed-p").textContent = "Each has a crash-risk percentile with a 90% range. " + fmt(served) + " are in Waymo's current service area (CPUC filing, " + D.asOf + "); the rest are scored as if served at a typical level.";
+    $("#s-check").closest(".stat").hidden = true;
+  }
+  $("#s-gap").innerHTML = X.noFiling + ' <small>of ' + X.authorised + ' counties, no filing</small>';
+  $("#s-gap-p").textContent = X.noFiling + " of " + X.authorised + " authorised counties have no deployment filing — " + (X.noFilingResidents / 1e6).toFixed(1) + "M residents with no local crash record." +
+    (FUT ? " Takes about " + futWhen() + " once service starts." : "");
   $("#asof").textContent = D.asOf;
+})();
+
+/* ---------------- layers ---------------- */
+const FILING = "service area: CPUC deployment filing, " + D.asOf;
+const PCT_STOPS = [0, 20, 40, 60, 80];
+function quintiles(vals){ const s = vals.filter(v => v != null && isFinite(v)).sort((a, b) => a - b); return [s[0], .2, .4, .6, .8].map((p, k) => k ? quant(s, p) : p); }
+const LAYERS = {
+  dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr, ring:true,
+           desc:"<b>Disengagement risk per mile:</b> how often a supervised test vehicle needed a human to take over, per mile on this tract's roads, against the California average (1×). Built from DMV disengagement reports and OpenStreetMap road features — no crash data used.",
+           data:"Data: CA DMV disengagement and mileage reports 2020–24 · OpenStreetMap · Caltrans traffic counts (notebook 17)" },
+  risk:  { group:"Crash risk", name:"Crash risk (main model)", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true,
+           desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract. Faded tracts lie outside the conditions driven so far.",
+           data:"Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING },
+  risk2: { group:"Crash risk", name:"Second model (DMV 2019–24)", type:"ramp", val:i => T[i][23], stops:PCT_STOPS, f:ord,
+           desc:"<b>Second model:</b> the same features, trained on DMV-reported autonomous-mode crashes 2019–24 from every company. Where the two maps differ, the models weigh features differently (see “What drives the crash-risk map”).",
+           data:"Data: DMV collision reports 2019–24 via Xu, Jiao & Chen (2025), re-geocoded against OpenStreetMap" },
+  unc:   { group:"Crash risk", name:"How uncertain is the ranking", type:"ramp", val:i => T[i][21] == null ? null : T[i][22] - T[i][21], f:v => Math.round(v) + " pts",
+           desc:"<b>How uncertain is the ranking:</b> how much a tract's rank could shift if the model were re-tested on different neighbourhoods. Darker tracts are less certain.",
+           data:"Data: the main model re-tested 200 times on resampled neighbourhoods (notebook 06)" },
+  stat:  { group:"Evidence", name:"Validation status", type:"cat",
+           desc:"<b>Validation status:</b> Covered tracts are in a deployment filing. Similarly tested and Untested tracts are authorised but not listed; Untested means places like it have barely been listed either.",
+           data:"Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING + " · analogues from census and OpenStreetMap features" },
+  cov:   { group:"Evidence", name:"Filings", type:"cat",
+           desc:"<b>Filings:</b> whether a tract is listed in a CPUC deployment filing, and whether its county was authorised on 14 Aug 2026.",
+           data:"Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING },
+  obs:   { group:"Evidence", name:"Reported collisions 2025–26", type:"ramp", val:i => OBS[i] ? OBS[i][0] : null, stops:[0, 1, 2, 4, 8], f:v => v === 0 ? "0" : fmt(v),
+           nullText:"Not in a filing: no record",
+           desc:"<b>Reported collisions:</b> collisions Waymo reported to the CPUC in each listed tract, 2025Q1–2026Q2, whoever was at fault. Only tracts in a filing have a record.",
+           data:"Data: CPUC Waymo deployment filings 2025Q1–2026Q2 (reported by the operator)" },
+  hisp:  { group:"Who lives there", name:"Hispanic share", type:"ramp", val:i => T[i][5], stops:[0, .2, .4, .6, .8], f:v => Math.round(v * 100) + "%", ring:true,
+           desc:"<b>Hispanic share of residents.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  black: { group:"Who lives there", name:"Black share", type:"ramp", val:i => T[i][6], stops:[0, .05, .1, .2, .4], f:v => Math.round(v * 100) + "%", ring:true,
+           desc:"<b>Black (non-Hispanic) share of residents.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  inc:   { group:"Who lives there", name:"Median income", type:"ramp", val:i => T[i][4], stops:[0, 60000, 90000, 130000, 180000], f:v => "$" + Math.round(v / 1000) + "k", ring:true,
+           desc:"<b>Median household income.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  veh:   { group:"Who lives there", name:"Households with no car", type:"ramp", val:i => T[i][7], stops:[0, .05, .1, .2, .35], f:v => Math.round(v * 100) + "%", ring:true,
+           desc:"<b>Households with no car.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+};
+F.forEach((f, j) => {
+  const vals = T.map((t, i) => FEAT[i] ? rawOf(f, FEAT[i][j]) : null);
+  LAYERS["f" + j] = { group:"Model inputs", name:LAB[f][0], type:"ramp", val:i => vals[i], stops:quintiles(vals), f:v => showRaw(f, v), ring:true,
+    desc:"<b>" + LAB[f][0] + "</b> (" + LAB[f][1] + "), one of the 13 features the crash-risk model reads, coloured in fifths of the tracts on this map. Ringed tracts are in a deployment filing.",
+    data:"Data: " + (/road|crossing|signal|arterial|freeway|bike/.test(f) ? "OpenStreetMap (Geofabrik)" : "ACS 2019–2023 5-year estimates; Census 2023 gazetteer") + " · " + FILING };
+});
+LAYERS.unc.stops = quintiles(T.map((t, i) => LAYERS.unc.val(i)));
+LAYERS.dis.stops = quintiles(T.map((t, i) => LAYERS.dis.val(i)));
+const CROSS_LAYER = "f" + F.indexOf("log_crossing_density");
+(function layerSelect(){
+  const groups = {};
+  Object.entries(LAYERS).forEach(([k, L]) => (groups[L.group] = groups[L.group] || []).push('<option value="' + k + '">' + esc(L.name) + '</option>'));
+  $("#layer").innerHTML = Object.entries(groups).map(([g, o]) => '<optgroup label="' + g + '">' + o.join("") + '</optgroup>').join("");
+})();
+
+/* ---------------- filters ---------------- */
+const FILT0 = () => ({ lo:1, hi:100, status:new Set(hasStatus), county:"", reliable:true });
+let FILT = FILT0(), MATCH = new Uint8Array(T.length);
+const passOthers = i => { const t = T[i];
+  return (FILT.county === "" || t[2] === +FILT.county) && FILT.status.has(t[10]) && !(FILT.reliable && t[11] != null && !t[14]); };
+const passRange = i => (FILT.lo <= 1 && FILT.hi >= 100) || (T[i][20] != null && T[i][20] >= FILT.lo && T[i][20] <= FILT.hi);
+$("#fstatus").innerHTML = hasStatus.map(s => '<button type="button" class="chip ' + ["served", "watch", "flag", "none"][s] + '" data-s="' + s + '" aria-pressed="true">' + STATUS[s] + '</button>').join("");
+$("#fcounty").innerHTML = '<option value="">All counties</option>' + D.counties.map((c, i) => '<option value="' + i + '">' + c + '</option>').join("");
+function syncFilterUI(){
+  $("#flo").value = FILT.lo; $("#fhi").value = FILT.hi; $("#fcounty").value = FILT.county; $("#freliable").checked = FILT.reliable;
+  document.querySelectorAll("#fstatus button").forEach(b => b.setAttribute("aria-pressed", FILT.status.has(+b.dataset.s)));
+}
+function applyFilter(){
+  let n = 0, res = 0;
+  for (let i = 0; i < T.length; i++){ MATCH[i] = passOthers(i) && passRange(i) ? 1 : 0; if (MATCH[i]){ n++; res += T[i][3]; } }
+  const all = n === T.length;
+  $("#fcount").innerHTML = all ? "All <b>" + fmt(n) + "</b> tracts" : "<b>" + fmt(n) + "</b> of " + fmt(T.length) + " tracts · <b>" + (res / 1e6).toFixed(2) + "M</b> residents";
+  hist(); draw(); scheduleTable(); saveState();
+}
+function setFilter(p){ Object.assign(FILT, p); syncFilterUI(); applyFilter(); }
+$("#fstatus").addEventListener("click", e => { const b = e.target.closest("button[data-s]"); if (!b) return; const s = +b.dataset.s;
+  FILT.status.has(s) ? FILT.status.delete(s) : FILT.status.add(s); syncFilterUI(); applyFilter(); });
+$("#fcounty").addEventListener("change", e => setFilter({ county:e.target.value }));
+$("#freliable").addEventListener("change", e => setFilter({ reliable:e.target.checked }));
+const rangeIn = () => { let a = Math.max(1, Math.min(100, Math.round(+$("#flo").value || 1))), b = Math.max(1, Math.min(100, Math.round(+$("#fhi").value || 100)));
+  if (a > b) [a, b] = [b, a]; setFilter({ lo:a, hi:b }); };
+$("#flo").addEventListener("change", rangeIn); $("#fhi").addEventListener("change", rangeIn);
+$("#freset").addEventListener("click", () => { FILT = FILT0(); syncFilterUI(); applyFilter(); });
+
+// histogram of crash-risk percentiles for the tracts that pass the other filters; drag across it to set the range
+const HB = 20, HW = 200, HH = 42, HPAD = 2;
+function hist(){
+  const n = new Array(HB).fill(0);
+  for (let i = 0; i < T.length; i++){ const p = T[i][20]; if (p != null && passOthers(i)) n[Math.min(HB - 1, Math.floor((p - 1) / 5))]++; }
+  const mx = Math.max(1, ...n), bw = (HW - 2 * HPAD) / HB;
+  $("#hist").innerHTML = n.map((v, b) => { const lo = b * 5 + 1, hi = b * 5 + 5, on = hi >= FILT.lo && lo <= FILT.hi, h = Math.max(v ? 2 : 0, v / mx * (HH - 6));
+    return '<rect x="' + (HPAD + b * bw + .5).toFixed(1) + '" y="' + (HH - 2 - h).toFixed(1) + '" width="' + (bw - 1.5).toFixed(1) + '" height="' + h.toFixed(1) +
+      '" rx="1" fill="var(--r' + Math.min(4, Math.floor(b / 4)) + ')" opacity="' + (on ? 1 : .25) + '"><title>Rank ' + lo + '–' + hi + ' of 100: ' + v + ' tracts</title></rect>'; }).join("") +
+    '<line x1="0" x2="' + HW + '" y1="' + (HH - 1.5) + '" y2="' + (HH - 1.5) + '" stroke="var(--line)"/>';
+}
+(function histBrush(){
+  const svg = $("#hist"); let start = null;
+  const binAt = e => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(HB - 1, Math.floor((e.clientX - r.left) / r.width * HB))); };
+  svg.addEventListener("pointerdown", e => { svg.setPointerCapture(e.pointerId); start = binAt(e); FILT.lo = start * 5 + 1; FILT.hi = start * 5 + 5; syncFilterUI(); hist(); });
+  svg.addEventListener("pointermove", e => { if (start == null) return; const b = binAt(e); FILT.lo = Math.min(start, b) * 5 + 1; FILT.hi = Math.max(start, b) * 5 + 5; syncFilterUI(); hist(); });
+  const done = () => { if (start == null) return; start = null; applyFilter(); };
+  svg.addEventListener("pointerup", done); svg.addEventListener("pointercancel", done);
+  svg.addEventListener("dblclick", () => setFilter({ lo:1, hi:100 }));
 })();
 
 /* ---------------- county panel ---------------- */
@@ -374,7 +699,18 @@ function renderCounty(i){
       [0, 1, 2].map(s => '<tr><td><span style="color:' + STATUS_VAR[s] + ';font-weight:700">' + STATUS[s] + '</span></td><td>' + fmt(n[s].length) + '</td><td>' + fmt(p[s]) + '</td></tr>').join("") +
       '</tbody></table>';
   }
-  if (sv.length && share > .9){
+  if (sv.length && un.length > 5){
+    const r = (k, f) => '<tr><td>' + k[0] + '</td><td>' + f(wmean(sv, k[1])) + '</td><td>' + f(wmean(un, k[1])) + '</td></tr>';
+    h += '<table class="cmp"><thead><tr><th>Population-weighted</th><th>Listed</th><th>Not listed</th></tr></thead><tbody>' +
+      r(["Median income", 4], money) + r(["Hispanic", 5], v => pct(v)) + r(["Black", 6], v => pct(v)) + r(["No car", 7], v => pct(v)) +
+      '</tbody></table>';
+  }
+  if (c === "Los Angeles"){
+    h += '<p class="note find">Among tracts Waymo listed in LA, each +10 points of Hispanic share cut the odds of any trip to about 0.55× ' +
+      '(Black share: about 0.65×). That is after controlling for density, income and car ownership, and it held in every month from April to December 2024. ' +
+      'Jobs density, a measure of where people travel to, explains about a quarter of the gap; with it controlled, the Hispanic figure is 0.61–0.75×. ' +
+      'Trips also reflect rider demand, so this is a gap in the evidence. It does not show intent.</p>';
+  } else if (sv.length && share > .9){
     h += '<p class="note">Almost every tract is listed, so a within-county comparison has little to compare. See Los Angeles for the one county with partial coverage.</p>';
   } else if (!sv.length && auth){
     h += '<p class="note find">Driverless service is authorised here, and no public deployment filing covers any tract. No California driverless safety record exists for these ' + fmt(rows.length) + ' tracts.</p>';
@@ -384,23 +720,45 @@ function renderCounty(i){
   $("#cbody").innerHTML = h;
   sel.value = i; draw();
 }
-sel.addEventListener("change", () => { pick = -1; $("#tbody").hidden = true; renderCounty(sel.value); });
+sel.addEventListener("change", () => renderCounty(sel.value));
 
 /* ---------------- map ---------------- */
 const cv = $("#map"), box = $("#mapbox"), tip = $("#tip");
 const ctx = cv.getContext("2d");
 const COS = Math.cos(37 * Math.PI / 180);
-const PRESET = { sf:[-122.44,37.76,16], ca:[-119.4,36.0,1.15], bay:[-122.15,37.6,4.2], la:[-118.3,34.02,7], sc:[-121.89,37.34,9], sd:[-117.1,32.9,5], sac:[-121.4,38.6,5] };
-let W = 0, H = 0, dpr = 1, view = { lon:-119.4, lat:36.0, z:1.15 }, mode = "risk", pal = {}, pick = -1;
+const PRESET = { sf:[-122.44,37.76,16], ca:[-119.4,36.0,1.15], bay:[-122.15,37.6,4.2], la:[-118.3,34.02,7], sd:[-117.1,32.9,5], sac:[-121.4,38.6,5] };
+let W = 0, H = 0, dpr = 1, view = { lon:-119.4, lat:36.0, z:1.15 }, layer = DIS.some(Boolean) ? "dis" : "risk", pal = {}, pick = -1, pin = -1, showAnal = false;
+let cellMode = false, pickCell = -1, cellProj = [];
 const kBase = () => Math.min(W / (10.5 * COS), H / 10.2);
 const px = (lon, lat) => { const k = kBase() * view.z; return [W / 2 + (lon - view.lon) * k * COS, H / 2 - (lat - view.lat) * k]; };
 const unpx = (x, y) => { const k = kBase() * view.z; return [view.lon + (x - W / 2) / (k * COS), view.lat - (y - H / 2) / k]; };
-function readPal(){ ["--accent","--gap","--watch","--other","--ink","--surface","--r0","--r1","--r2","--r3","--r4","--cv0","--cv1","--cv2","--cv3","--cv4","--line"].forEach(n => pal[n] = css(n)); }
+const POLY_Z = 5; // below this zoom, tracts are too small on screen for real shapes to read - use dots
+const TPBOUNDS = TP.map(p => { if (!p) return null; let a = p[0][0], b = p[0][0], c = p[0][1], d = p[0][1];
+  for (const [lon, lat] of p){ if (lon < a) a = lon; if (lon > b) b = lon; if (lat < c) c = lat; if (lat > d) d = lat; } return [a, b, c, d]; });
+function pointInPoly(lon, lat, ring){
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function readPal(){ ["--accent","--gap","--watch","--other","--ink","--ink2","--surface","--cool","--r0","--r1","--r2","--r3","--r4","--line"].forEach(n => pal[n] = css(n)); }
 function resize(){ const r = box.getBoundingClientRect(); dpr = window.devicePixelRatio || 1; W = r.width; H = r.height;
   cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(); }
-const RAMP = { risk:[20,[0,20,40,60,80]], hisp:[5,[0,.2,.4,.6,.8]], inc:[4,[0,60000,90000,130000,180000]], veh:[7,[0,.05,.1,.2,.35]] };
-function rampBucket(v, stops){ if (v == null) return -1; let i = 0; while (i < 4 && v >= stops[i + 1]) i++; return i; }
-function rampColor(v, stops){ const i = rampBucket(v, stops); return i < 0 ? null : pal["--r" + i]; }
+function rampColor(v, stops){ if (v == null) return null; let i = 0; while (i < 4 && v >= stops[i + 1]) i++; return pal["--r" + i]; }
+// categorical layers: class of each tract, colour per class, and drawing order (background classes first)
+const CAT = {
+  stat:  { cls:i => T[i][10], order:[3, 0, 1, 2], col:["--accent", "--watch", "--gap", "--other"], alpha:[1, 1, 1, .75] },
+  cov:   { cls:i => T[i][8] ? 2 : (isAuth(T[i]) ? 1 : 0), order:[0, 1, 2], col:["--other", "--gap", "--accent"], alpha:[.75, 1, 1] },
+};
+function styleOf(i){
+  const L = LAYERS[layer];
+  if (L.type === "cat"){ const C = CAT[layer], c = C.cls(i); return [pal[C.col[c]], C.alpha[c], c]; }
+  const v = L.val(i), col = rampColor(v, L.stops);
+  if (col == null) return [pal["--other"], .35, 0];
+  return [col, L.fade && !T[i][14] ? .3 : 1, 0];
+}
 let proj = [];
 function drawOutline(){
   if (!OUTLINE.length) return;
@@ -413,66 +771,93 @@ function drawOutline(){
   }
   ctx.globalAlpha = 1;
 }
-function draw(){
+const dotR = () => Math.max(1.3, Math.min(5, 1.05 * Math.sqrt(view.z)));
+function tractPath(i){
+  const poly = view.z >= POLY_Z ? TP[i] : null;
+  ctx.beginPath();
+  if (poly){ poly.forEach(([lon, lat], j) => { const [a, b] = px(lon, lat); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.closePath(); return true; }
+  const [x, y] = proj[i]; ctx.arc(x, y, dotR(), 0, 6.2832); return false;
+}
+function ring(i, color, width, dash, grow = 5){
+  ctx.globalAlpha = 1; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+  if (view.z >= POLY_Z && TP[i]) tractPath(i);
+  else { const [x, y] = proj[i]; ctx.beginPath(); ctx.arc(x, y, dotR() + grow, 0, 6.2832); }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+let drawQueued = false;
+function draw(){ if (!drawQueued){ drawQueued = true; requestAnimationFrame(() => { drawQueued = false; drawNow(); }); } }
+function cellSize(){ return Math.max(1.4, Math.min(5.5, kBase() * view.z * 0.0048 * COS)); }
+function drawCells(){
+  cellProj = CELLS.map(c => px(c[0], c[1]));
+  const L = LAYERS.dis, s = cellSize();
+  let visible = 0;
+  for (let i = 0; i < CELLS.length; i++){
+    const [x, y] = cellProj[i];
+    if (x < -20 || y < -20 || x > W + 20 || y > H + 20) continue;
+    visible++;
+    const col = rampColor(CELLS[i][2], L.stops);
+    ctx.globalAlpha = col == null ? .25 : .9;
+    ctx.fillStyle = col == null ? pal["--other"] : col;
+    ctx.fillRect(x - s / 2, y - s / 2, s, s);
+  }
+  ctx.globalAlpha = 1;
+  if (pickCell >= 0) ringCell(pickCell);
+  const cEl = $("#tractcount");
+  if (cEl) cEl.innerHTML = "<b>" + visible.toLocaleString() + "</b> of " + CELLS.length.toLocaleString() + " 500 m road cells in view";
+  const labelOp = Math.max(0, Math.min(1, (5.5 - view.z) / 2.5));
+  METRO_LABELS.forEach(m => {
+    const [x, y] = px(m.lon, m.lat), onScreen = x > -40 && x < W + 40 && y > -20 && y < H + 20;
+    m.el.style.opacity = onScreen ? labelOp : 0; m.el.style.left = x + "px"; m.el.style.top = (y - 14) + "px";
+    m.el.style.fontSize = Math.max(13, Math.min(22, 13 + view.z)) + "px"; m.el.textContent = m.name + " · " + m.n.toLocaleString() + " tracts";
+  });
+  saveState();
+}
+function ringCell(i){
+  const [x, y] = cellProj[i], s = cellSize();
+  ctx.globalAlpha = 1; ctx.strokeStyle = pal["--ink"]; ctx.lineWidth = 2.4;
+  ctx.strokeRect(x - s / 2 - 2, y - s / 2 - 2, s + 4, s + 4);
+}
+function drawNow(){
   if (!W) return;
   ctx.clearRect(0, 0, W, H);
   drawOutline();
-  const r = Math.max(1.3, Math.min(5, 1.05 * Math.sqrt(view.z)));
-  const selC = +sel.value;
+  if (cellMode && layer === "dis" && CELLS.length){ drawCells(); return; }
+  const selC = +sel.value, L = LAYERS[layer];
   proj = T.map(t => px(t[0], t[1]));
   let visible = 0;
-  // draw order: background classes first, so the classes that matter sit on top
-  const layers = mode === "cov" ? [0, 1, 2] : mode === "stat" ? [3, 0, 1, 2] : [0];
-  const STAT_COL = [pal["--accent"], pal["--watch"], pal["--gap"], pal["--other"]];
-  for (const L of layers){
+  const passes = L.type === "cat" ? CAT[layer].order : [null];
+  for (const P of passes){
     for (let i = 0; i < T.length; i++){
-      const t = T[i], [x, y] = proj[i];
-      if (x < -8 || y < -8 || x > W + 8 || y > H + 8) continue;
-      if (L === layers[0]) visible++;
-      let col, a = 1;
-      if (mode === "cov"){
-        const cls = t[8] ? 2 : (isAuth(t) ? 1 : 0);
-        if (cls !== L) continue;
-        col = [pal["--other"], pal["--gap"], pal["--accent"]][cls];
-        a = L === 0 ? .75 : 1;
-      } else if (mode === "stat"){
-        if (t[10] !== L) continue;
-        col = STAT_COL[L]; a = L === 3 ? .75 : 1;
-      } else if (mode === "risk"){
-        const [k, stops] = RAMP[mode];
-        const b = rampBucket(t[k], stops);
-        col = b < 0 ? pal["--other"] : (t[8] ? pal["--cv" + b] : pal["--r" + b]);
-        if (!t[14]) a = .3;     // outside driven conditions: extrapolated
-      } else {
-        const [k, stops] = RAMP[mode];
-        col = rampColor(t[k], stops) || pal["--other"];
-      }
-      ctx.globalAlpha = a;
+      const [x, y] = proj[i];
+      if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
+      const [col, a, c] = styleOf(i);
+      if (P != null && c !== P) continue;
+      ctx.globalAlpha = MATCH[i] ? a : Math.min(a, .1);
       ctx.fillStyle = col;
-      const poly = view.z >= POLY_Z ? TP[i] : null;
-      if (poly){
-        ctx.beginPath();
-        poly.forEach(([lon, lat], j) => { const [px_, py_] = px(lon, lat); j ? ctx.lineTo(px_, py_) : ctx.moveTo(px_, py_); });
-        ctx.closePath(); ctx.fill();
-        ctx.lineWidth = .7; ctx.strokeStyle = pal["--surface"]; ctx.stroke();
-      } else {
-        ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
-      }
-      if (mode !== "cov" && mode !== "stat" && mode !== "risk" && t[8]){ ctx.globalAlpha = 1; ctx.lineWidth = Math.max(.8, r * .38); ctx.strokeStyle = pal["--ink"]; ctx.stroke(); }
+      const isPoly = tractPath(i); ctx.fill();
+      if (isPoly){ ctx.lineWidth = .7; ctx.strokeStyle = pal["--surface"]; ctx.stroke(); }
+      if (L.ring && T[i][8] && MATCH[i]){ ctx.globalAlpha = isPoly ? .55 : 1; ctx.lineWidth = isPoly ? .9 : Math.max(.8, dotR() * .38); ctx.strokeStyle = pal["--ink"]; ctx.stroke(); }
     }
   }
+  for (let i = 0; i < T.length; i++){ const [x, y] = proj[i]; if (MATCH[i] && x >= -8 && y >= -8 && x <= W + 8 && y <= H + 8) visible++; }
   ctx.globalAlpha = 1;
-  if (pick >= 0){ const [x, y] = proj[pick];
-    ctx.lineWidth = 2.5; ctx.strokeStyle = pal["--ink"]; ctx.beginPath(); ctx.arc(x, y, r + 5, 0, 6.2832); ctx.stroke(); }
   // outline the selected county's tracts faintly (dot mode only - real polygon borders already show this at high zoom)
   if (view.z >= 2 && view.z < POLY_Z){
     ctx.strokeStyle = pal["--ink"]; ctx.globalAlpha = .18; ctx.lineWidth = .8;
     for (let i = 0; i < T.length; i++){ if (T[i][2] !== selC) continue; const [x, y] = proj[i];
-      if (x < -8 || y < -8 || x > W + 8 || y > H + 8) continue; ctx.beginPath(); ctx.arc(x, y, r + 1.2, 0, 6.2832); ctx.stroke(); }
+      if (x < -8 || y < -8 || x > W + 8 || y > H + 8) continue; ctx.beginPath(); ctx.arc(x, y, dotR() + 1.2, 0, 6.2832); ctx.stroke(); }
     ctx.globalAlpha = 1;
   }
+  // look-alikes of the selected tract: blue = has been in a filing, grey = never listed
+  if (showAnal && pick >= 0 && ANAL[pick]){
+    const [refs, near] = ANAL[pick];
+    refs.forEach(r => { if (r >= 0) ring(r, T[r][24] > 0 ? pal["--accent"] : pal["--ink2"], T[r][24] > 0 ? 2.2 : 1.4, null, 3); });
+    if (typeof near === "number") ring(near, pal["--accent"], 3.2, [5, 3], 6);
+  }
+  if (pin >= 0 && pin !== pick) ring(pin, pal["--ink"], 2.2, [4, 3]);
+  if (pick >= 0) ring(pick, pal["--ink"], 2.8, null);
   const cEl = $("#tractcount");
-  if (cEl) cEl.innerHTML = "<b>" + visible.toLocaleString() + "</b> of " + T.length.toLocaleString() + " tracts in view";
+  if (cEl) cEl.innerHTML = "<b>" + visible.toLocaleString() + "</b> of " + T.length.toLocaleString() + " tracts in view" + (MATCH.every(Boolean) ? "" : " match the filters");
   const labelOp = Math.max(0, Math.min(1, (5.5 - view.z) / 2.5));
   METRO_LABELS.forEach(m => {
     const [x, y] = px(m.lon, m.lat);
@@ -482,98 +867,74 @@ function draw(){
     m.el.style.fontSize = Math.max(13, Math.min(22, 13 + view.z)) + "px";
     m.el.textContent = m.name + " · " + m.n.toLocaleString() + " tracts";
   });
+  saveState();
 }
-// what each layer is built from, and how current it is
-const FILING = "service area: CPUC deployment filing, " + D.asOf;
-const LAYER_DATA = {
-  risk: "Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING,
-  stat: "Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING + " · analogues from census and OpenStreetMap features",
-  cov:  "Data: authorisation, CPUC decision of 14 Aug 2026 · " + FILING,
-  hisp: "Data: ACS 2019–2023 5-year estimates · " + FILING,
-  inc:  "Data: ACS 2019–2023 5-year estimates · " + FILING,
-  veh:  "Data: ACS 2019–2023 5-year estimates · " + FILING };
+
+/* ---------------- legend ---------------- */
+function rampKey(L){
+  const s = L.stops, nums = L.f(s[1]) + ' … ' + L.f(s[4]) + '+';
+  return [s, nums];
+}
 function legend(){
-  const el = $("#legend");
-  legendBody(el);
-  el.insertAdjacentHTML("beforeend", '<span class="asof">' + LAYER_DATA[mode] + '</span>');
-  colorKey();
-}
-let ckOpen = false, ckInfoOpen = false;
-function colorKey(){
-  const el = $("#colorkey");
-  el.hidden = false;
-  el.classList.toggle("open", ckOpen);
-  let title, body;
-  if (mode === "stat"){
-    title = "Validation status";
-    const DESC = ["Listed in a filing, driving now", "Authorised, not listed, but similar places have been driven", "Authorised, not listed, and unlike anywhere driven", "Not authorised for service"];
-    body = [0, 1, 2, 3].map(s => '<span class="key" style="display:block;margin-top:7px"><span style="display:flex;gap:6px;align-items:center"><i style="background:' +
-        (s === 3 ? "var(--other)" : STATUS_VAR[s]) + '"></i><b style="color:var(--ink)">' + STATUS[s] + '</b></span>' +
-        '<span style="display:block;font-size:11px;margin-left:16px">' + DESC[s] + '</span></span>').join("") +
-      '<button type="button" class="ckinfo" id="ckInfoBtn" style="display:block;margin-top:8px;padding-top:7px;border-top:1px solid var(--line);border-left:none;border-right:none;border-bottom:none;background:none;color:var(--accent);font:inherit;font-size:11px;font-weight:700;cursor:pointer;text-align:left;width:100%">What does "similar tracts driven" mean?</button>' +
-      '<span id="ckInfoBody"' + (ckInfoOpen ? '' : ' hidden') + ' style="display:block;margin-top:6px;font-size:11px">' +
-      '"Similar tracts driven" compares each tract to its 25 closest look-alikes by density, income, transit, car ownership and averages how long those 25 have actually been driven.</span>';
-  } else if (mode === "cov"){
-    title = "Coverage";
-    body = '<span class="key"><i style="background:var(--accent)"></i>In a deployment filing</span>' +
-      '<span class="key"><i style="background:var(--gap)"></i>Authorised, no filing</span>' +
-      '<span class="key"><i style="background:var(--other)"></i>Not authorised</span>';
-  } else if (mode === "risk"){
-    title = "Disengagement-risk percentile";
-    const [, stops] = RAMP.risk;
-    const f = v => v + "th";
-    const ramp = fam => '<span class="ramp" style="display:flex;height:9px;border-radius:3px;overflow:hidden">' +
-      [0,1,2,3,4].map(i => '<span style="flex:1;background:var(--' + fam + i + ')"></span>').join("") + '</span>';
-    body = '<span style="display:block;font-size:11px">Covered (driving now)</span>' + ramp("cv") +
-      '<span style="display:block;margin-top:6px;font-size:11px">Untested (authorised, no trips)</span>' + ramp("r") +
-      '<span class="nums" style="margin-top:4px"><span>Low</span><span>' + f(stops[1]) + ' … ' + f(stops[4]) + '+</span></span>' +
-      '<span style="display:block;margin-top:5px;font-size:11px">Darker = higher relative risk, within each group</span>';
+  const L = LAYERS[layer], el = $("#legend"), key = $("#colorkey");
+  key.hidden = false;
+  $("#layerdesc").innerHTML = L.desc + (cellMode && layer === "dis" ?
+    " Showing " + fmt(CELLS.length) + " individual 500 m road cells (same colour scale) instead of tract averages — click a cell for its own range." : "");
+  if (L.type === "cat"){
+    let cls, lab;
+    if (layer === "stat"){ cls = [0, 1, 2, 3].filter(s => hasStatus.includes(s)); lab = s => STATUS[s];
+      const DESC = ["In a deployment filing (authorised service area)", "Authorised, not listed; similar places have been listed", "Authorised, not listed, and unlike anywhere listed", "Not authorised for service"];
+      key.innerHTML = '<span class="title">Validation status</span>' + cls.map(s => '<span class="key" style="display:block;margin-top:7px"><span style="display:flex;gap:6px;align-items:center"><i style="background:var(' + CAT.stat.col[s] + ')"></i><b style="color:var(--ink)">' + STATUS[s] + '</b></span>' +
+        '<span style="display:block;font-size:11px;margin-left:16px">' + DESC[s] + '</span></span>').join("");
+      el.innerHTML = cls.map(s => '<span class="key"><i style="background:var(' + CAT.stat.col[s] + ')"></i>' + STATUS[s] + '</span>').join("") +
+        '<span class="spacer"></span><span>Covered = in a deployment filing (authorised service area) &nbsp;·&nbsp; Similarly tested = authorised, not listed, similar places listed &nbsp;·&nbsp; Untested = authorised, not listed, and &lt;10% of its 25 closest analogues listed (or far outside driven conditions)</span>';
+    } else if (layer === "cov"){
+      const K = [[2, "In a deployment filing"], [1, "Authorised Aug 2026, no filing"], [0, "Not authorised"]];
+      key.innerHTML = '<span class="title">Coverage</span>' + K.map(([c, s]) => '<span class="key"><i style="background:var(' + CAT.cov.col[c] + ')"></i>' + s + '</span>').join("");
+      el.innerHTML = K.map(([c, s]) => '<span class="key"><i style="background:var(' + CAT.cov.col[c] + ')"></i>' + s + '</span>').join("") + '<span class="spacer"></span><span>One tract per dot or shape · drag, scroll, click</span>';
+    }
   } else {
-    const [, stops] = RAMP[mode];
-    const f = mode === "inc" ? (v => "$" + v / 1000 + "k") : (v => Math.round(v * 100) + "%");
-    title = { hisp:"Hispanic share", inc:"Median income", veh:"No car" }[mode];
-    body = '<span class="ramp" style="display:flex;height:10px;border-radius:3px;overflow:hidden">' +
-      [0,1,2,3,4].map(i => '<span style="flex:1;background:var(--r' + i + ')"></span>').join("") + '</span>' +
-      '<span class="nums"><span>Low</span><span>' + f(stops[1]) + ' … ' + f(stops[4]) + '+</span></span>';
+    const [, nums] = rampKey(L);
+    const extra = (L.fade ? '<span class="key"><i style="background:var(--r2);opacity:.3"></i>Faded: extrapolated</span>' : '') +
+      (L.ring ? '<span class="key"><i style="background:transparent;border:2px solid var(--ink)"></i>Ringed: in a deployment filing</span>' : '') +
+      (L.nullText ? '<span class="key"><i style="background:var(--other);opacity:.35"></i>' + L.nullText + '</span>' : '');
+    key.innerHTML = '<span class="title">' + esc(L.name) + '</span><span style="display:flex;height:10px;border-radius:3px;overflow:hidden">' +
+      [0, 1, 2, 3, 4].map(i => '<span style="flex:1;background:var(--r' + i + ')"></span>').join("") + '</span>' +
+      '<span class="nums"><span>Low</span><span>' + nums + '</span></span>';
+    el.innerHTML = '<span>' + esc(L.name) + (layer.startsWith("risk") ? ' (rank out of 100 tracts on this map)' : '') + '</span><span class="ramp">' + [0, 1, 2, 3, 4].map(i => '<i style="background:var(--r' + i + ')"></i>').join("") +
+      '</span><span class="num">' + nums + '</span>' + extra;
   }
-  el.innerHTML = '<div class="ckhead">' + title + '</div><div class="ckbody">' + body + '</div>';
+  el.insertAdjacentHTML("beforeend", '<span class="asof">' + L.data + '</span>');
 }
-$("#colorkey").addEventListener("click", e => {
-  if (e.target.closest("#ckInfoBtn")){ e.stopPropagation(); ckInfoOpen = !ckInfoOpen; colorKey(); return; }
-  ckOpen = !ckOpen; colorKey();
-});
-function legendBody(el){
-  if (mode === "stat"){
-    el.innerHTML = [0, 1, 2, 3].map(s => '<span class="key"><i style="background:' + (s === 3 ? "var(--other)" : STATUS_VAR[s]) + '"></i>' + STATUS[s] + '</span>').join("") +
-      '<span class="spacer"></span><span>Covered = listed in a filing, driving now &nbsp;·&nbsp; Watch = authorised, not listed, but similar places have been driven &nbsp;·&nbsp; Flag = authorised, not listed, and &lt;10% of its 25 closest analogues driven (or far outside driven conditions)</span>';
-    return;
-  }
-  if (mode === "cov"){
-    el.innerHTML = '<span class="key"><i style="background:var(--accent)"></i>In a deployment filing</span>' +
-      '<span class="key"><i style="background:var(--gap)"></i>Authorised Aug 2026, no filing</span>' +
-      '<span class="key"><i style="background:var(--other)"></i>Not authorised</span>' +
-      '<span class="spacer"></span><span>One dot per census tract · drag, scroll, click</span>';
-  } else if (mode === "risk"){
-    const [, stops] = RAMP.risk, f = v => v + "th";
-    el.innerHTML = '<span>Disengagement-risk percentile (within this map)</span>' +
-      '<span>Blue = covered (driving now)</span><span class="ramp">' + [0,1,2,3,4].map(i => '<i style="background:var(--cv' + i + ')"></i>').join("") + '</span>' +
-      '<span>Warm = untested (authorised, no trips)</span><span class="ramp">' + [0,1,2,3,4].map(i => '<i style="background:var(--r' + i + ')"></i>').join("") + '</span>' +
-      '<span class="num">darker = higher risk, ' + f(stops[1]) + ' … ' + f(stops[4]) + '+</span>' +
-      '<span class="key"><i style="background:var(--r2);opacity:.3"></i>Faded: extrapolated</span>';
-  } else {
-    const [k, stops] = RAMP[mode];
-    const f = mode === "inc" ? (v => "$" + v / 1000 + "k") : (v => Math.round(v * 100) + "%");
-    const name = { hisp:"Hispanic share", inc:"Median household income", veh:"Households with no car" }[mode];
-    el.innerHTML = '<span>' + name + '</span><span class="ramp">' + [0,1,2,3,4].map(i => '<i style="background:var(--r' + i + ')"></i>').join("") +
-      '</span><span class="num">' + f(stops[1]) + ' … ' + f(stops[4]) + '+</span>' +
-      '<span class="key"><i style="background:transparent;border:2px solid var(--ink)"></i>Ringed: in a deployment filing</span>';
-  }
+function setCellMode(on){
+  cellMode = !!on; pickCell = -1; tip.hidden = true;
+  $("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
+  legend(); draw();
 }
-const MODES = ["stat","risk","cov"];
-function setMode(m){ mode = m; MODES.forEach(k => $("#m-" + k).setAttribute("aria-pressed", k === m)); legend(); draw(); }
-MODES.forEach(k => $("#m-" + k).addEventListener("click", () => setMode(k)));
+function setLayer(k){
+  if (!LAYERS[k]) return;
+  layer = k; $("#layer").value = k;
+  document.querySelectorAll("[data-layer]").forEach(b => b.setAttribute("aria-pressed", b.dataset.layer === k));
+  const showToggle = k === "dis" && CELLS.length > 0;
+  $("#viewmode").hidden = !showToggle;
+  if (!showToggle) setCellMode(false);
+  legend(); draw();
+}
+document.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => setLayer(b.dataset.layer)));
+$("#layer").addEventListener("change", e => setLayer(e.target.value));
+$("#vm-tract").addEventListener("click", () => setCellMode(false));
+$("#vm-cell").addEventListener("click", () => setCellMode(true));
+
+/* ---------------- map interaction ---------------- */
 function go(p){ const [lon, lat, z] = PRESET[p]; view = { lon, lat, z }; draw(); }
 $("#preset").addEventListener("change", e => go(e.target.value));
+function fitTo(idx){
+  if (!idx.length || !W) return;
+  let a = 180, b = -180, c = 90, d = -90;
+  idx.forEach(i => { const [lon, lat] = T[i]; a = Math.min(a, lon); b = Math.max(b, lon); c = Math.min(c, lat); d = Math.max(d, lat); });
+  const z = Math.min(W * .8 / (Math.max(b - a, .02) * COS * kBase()), H * .8 / (Math.max(d - c, .02) * kBase()));
+  view = { lon:(a + b) / 2, lat:(c + d) / 2, z:Math.max(.8, Math.min(40, z)) }; draw();
+}
 function zoomAt(f, x = W / 2, y = H / 2){ const [lon, lat] = unpx(x, y); view.z = Math.max(.8, Math.min(60, view.z * f));
   const [nx, ny] = px(lon, lat); const k = kBase() * view.z; view.lon += (nx - x) / (k * COS); view.lat -= (ny - y) / k; draw(); }
 $("#zin").addEventListener("click", () => zoomAt(1.6)); $("#zout").addEventListener("click", () => zoomAt(1 / 1.6));
@@ -596,7 +957,9 @@ cv.addEventListener("pointermove", e => {
   hover(e.clientX - r.left, e.clientY - r.top);
 });
 const end = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
-  if (drag && moved < 4){ const r = cv.getBoundingClientRect(); const i = nearest(e.clientX - r.left, e.clientY - r.top); if (i >= 0) selectTract(i, false); }
+  if (drag && moved < 4){ const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (cellMode && layer === "dis"){ const ci = nearestCell(mx, my); pickCell = ci === pickCell ? -1 : ci; draw(); if (pickCell >= 0) hoverCell(mx, my); }
+    else { const i = nearest(mx, my); if (i >= 0) selectTract(i, false); } }
   if (!ptrs.size){ drag = null; cv.classList.remove("dragging"); } };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
 cv.addEventListener("pointerleave", () => { tip.hidden = true; });
@@ -610,73 +973,174 @@ function nearest(x, y){
   }
   let best = -1, bd = 100; for (let i = 0; i < proj.length; i++){ const dx = proj[i][0] - x, dy = proj[i][1] - y, d = dx * dx + dy * dy; if (d < bd){ bd = d; best = i; } } return best;
 }
-const VARIANT = D.variant || "collision";
-const ROAD_NAMES = { pct_freeway:"freeway", pct_arterial:"arterial", pct_local:"local street" };
-function dominantRoad(t){
-  const m = { pct_freeway: t[25], pct_arterial: t[26], pct_local: t[27] };
-  const best = Object.keys(m).reduce((a, k) => (m[k] || 0) > (m[a] || 0) ? k : a, "pct_local");
-  return m[best] == null ? "–" : Math.round(m[best] * 100) + "% " + ROAD_NAMES[best];
+function nearestCell(x, y){
+  let best = -1, bd = 170;
+  for (let i = 0; i < cellProj.length; i++){ const dx = cellProj[i][0] - x, dy = cellProj[i][1] - y, d = dx * dx + dy * dy; if (d < bd){ bd = d; best = i; } }
+  return best;
 }
-function hover(x, y){
-  const i = nearest(x, y); if (i < 0){ tip.hidden = true; return; }
-  const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–";
-  const dg = VARIANT === "disengagement";
-  tip.innerHTML = '<b>' + c + ' · tract ' + t[9].slice(5) + '</b><span style="color:' + STATUS_VAR[t[10]] + ';font-weight:700;font-size:12px">' + STATUS[t[10]] + '</span>' +
-    '<div class="row"><span>' + (dg ? "Risk vs. statewide average" : "Risk vs. typical tract") + '</span><span>' + (t[11] == null ? "–" : x2(t[11]) + "×" + (t[14] ? "" : " *")) + '</span></div>' +
-    (dg
-      ? '<div class="row"><span>Mostly</span><span>' + dominantRoad(t) + '</span></div>' +
-        '<div class="row"><span>Est. disengagements</span><span>' + (t[28] == null ? "–" : fmt(t[28]) + '/M mi') + '</span></div>' +
-        '<div class="row"><span>Sample size</span><span>' + (t[24] == null ? "–" : fmt(t[24])) + '</span></div>' +
-        '<div class="row"><span>Residents</span><span>' + fmt(t[3]) + '</span></div>'
-      : '<div class="row"><span>Similar tracts driven</span><span>' + pct(t[12]) + '</span></div>' +
-        '<div class="row"><span>Residents</span><span>' + fmt(t[3]) + '</span></div>' +
-        '<div class="row"><span>Median income</span><span>' + money(t[4]) + '</span></div>' +
-        '<div class="row"><span>Hispanic</span><span>' + pct(t[5]) + '</span></div>' +
-        '<div class="row"><span>No car</span><span>' + pct(t[7]) + '</span></div>');
+function hoverCell(x, y){
+  const i = nearestCell(x, y); if (i < 0){ tip.hidden = true; return; }
+  const c = CELLS[i];
+  const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
+  tip.innerHTML = '<b>500 m road cell</b>' +
+    row("Disengagement / mile", relText(c[2], c[3], c[4], "average")) +
+    (c[6] ? row("Largest factor", esc(c[6])) : "") +
+    (c[5] != null ? row("Reports / 1,000 mi*", c[5].toFixed(2)) : "") +
+    '<span style="font-size:11px;color:var(--ink2)">* a median 2024 test company, roads of this mix</span>';
   tip.hidden = false;
   const tw = tip.offsetWidth, th = tip.offsetHeight;
-  tip.style.left = Math.min(x + 14, W - tw - 6) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
+  tip.style.left = Math.max(6, Math.min(x + 14, W - tw - 6)) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
+}
+function hover(x, y){
+  if (cellMode && layer === "dis"){ hoverCell(x, y); return; }
+  const i = nearest(x, y); if (i < 0){ tip.hidden = true; return; }
+  const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–", L = LAYERS[layer], tf = topFactor(i), o = OBS[i];
+  const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
+  tip.innerHTML = '<b>' + esc(t[17] || c) + ' · tract ' + t[9].slice(5) + '</b><span style="color:' + STATUS_VAR[t[10]] + ';font-weight:700;font-size:12px">' + STATUS[t[10]] + '</span>' +
+    (DIS[i] ? row("Disengagement / mile", relText(DIS[i][0], DIS[i][1], DIS[i][2], "average")) : "") +
+    row("Crash risk", t[11] == null ? "–" : relText(t[11], t[15], t[16], "typical") + (t[14] ? "" : " *")) +
+    (tf ? row(tf.v > 0 ? "Mainly raised by" : "Mainly lowered by", phrase(tf) + " " + xf(tf.v)) : "") +
+    (L.type === "ramp" && !layer.startsWith("risk") && layer !== "obs" && layer !== "dis" ? row(esc(L.name), L.val(i) == null ? "–" : L.f(L.val(i))) : "") +
+    (o ? row("Collisions 2025–26", o[0]) : "") +
+    row("Residents", fmt(t[3])) + (t[14] ? "" : '<span style="font-size:11px;color:var(--ink2)">* outside the conditions driven so far</span>');
+  tip.hidden = false;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  tip.style.left = Math.max(6, Math.min(x + 14, W - tw - 6)) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
 }
 
 /* ---------------- one tract: the product's answer for a place ---------------- */
+// notebook 17: the tract's disengagement risk per mile, the specialised layers that add up to it, and each
+// layer's police-crash check (does it raise the share of its own kind of crash among police-reported crashes?)
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const polTip = l => "Police-reported crashes (CCRS 2022–24): places denser in " + l.feature + " are " + l.or.toFixed(2) + "× as likely to have a " + l.crashType + " crash (likely range " + l.lo.toFixed(2) + "×–" + l.hi.toFixed(2) + "×, " + fmt(l.crashes) + " crashes of that kind). " +
+  (l.raises ? "The layer marks where its situation happens." : "The layer does not mark its own kind of crash.");
+function disSection(i){
+  const dz = DIS[i]; if (!dz) return "";
+  const L = DM.layers || [], tm = dz[6] || [];
+  const rows = L.map((l, k) => ({ l, v:tm[k] })).filter(r => r.v != null && Math.abs(r.v) >= .005).sort((a, b) => b.v - a.v);
+  let h = '<div class="sec"><h4>Disengagement risk per mile</h4>' +
+    '<p class="ev"><span><b>' + relText(dz[0], dz[1], dz[2], "an average California road mile") + '</b>.' +
+    (dz[4] != null ? ' A median 2024 test company would file about <b>' + dz[4].toFixed(2) + '</b> reports per 1,000 miles on roads like these.' : '') + '</span></p>';
+  if (rows.length) h += '<table class="cmp dlay"><thead><tr><th>Specialised layer</th><th title="Added to, or taken from, an average road mile">Adds</th><th title="Police-crash check">Check</th></tr></thead><tbody>' +
+    rows.slice(0, 6).map(r => '<tr title="' + esc(polTip(r.l)) + '"><td>' + esc(cap(r.l.feature)) + '<span class="sm">' + esc(r.l.situation) + (r.l.road === "freeway" ? ", freeway" : "") + ' · ' + fmt(r.l.reports) + ' reports</span></td><td>' +
+      (r.v > 0 ? "+" : "−") + Math.abs(r.v).toFixed(2) + '</td><td>' + (r.l.raises ? '<span class="ok" aria-label="passes">✓</span>' : '<span class="no" aria-label="not specific">✗</span>') + '</td></tr>').join("") + '</tbody></table>';
+  const hidden = L.length - Math.min(6, rows.length);
+  h += '<p class="hint">Each layer adds to or takes from an average road mile, by how dense its feature is here against California' +
+    (hidden ? ' (' + hidden + ' smaller layer' + (hidden > 1 ? 's' : '') + ' not shown)' : '') + '. ' +
+    '✓: in ' + fmt(DM.policeCrashes) + ' police-reported crashes, denser places have more of that layer\'s own kind of crash (' + DM.policeUp + ' of ' + DM.policeLayers + ' layers); hover a row for the test. ' +
+    (dz[5] != null ? 'The rates rest on about ' + fmt(dz[5]) + ' DMV reports from roads of this mix. ' : '') + 'From the supervised-testing era (notebook 17); no crash data used.</p></div>';
+  return h;
+}
+const LOGMAX = Math.log(10);
+function barRow(e, base){
+  const w = v => Math.min(Math.abs(v), LOGMAX) / LOGMAX * 50, pos = v => 50 + Math.sign(v) * w(v);
+  const l = e.v >= 0 ? 50 : pos(e.v), col = e.v >= 0 ? "var(--r3)" : "var(--accent)";
+  const a = Math.min(pos(e.lo), pos(e.hi)), b = Math.max(pos(e.lo), pos(e.hi));
+  const detail = '<div class="wdetail" hidden id="wd' + base + e.k + '"><div class="dh"><span>Feature</span><span>This tract</span><span>' + (base === "p" ? "Pinned" : "Typical") + '</span><span>Factor</span></div>' +
+    e.feats.map(({ j, c }) => '<div class="dr"><span>' + esc(LAB[F[j]][0]) + '</span><span>' + showRaw(F[j], rawOf(F[j], FEAT[CUR][j])) + '</span><span>' +
+      showRaw(F[j], rawOf(F[j], base === "p" ? FEAT[pin][j] : REF[j])) + '</span><span>' + xf(c) + '</span></div>').join("") + '</div>';
+  return '<button type="button" class="wrow' + (e.stable ? '' : ' unsure') + '" aria-expanded="false" aria-controls="wd' + base + e.k + '" title="90% range ' + xf(e.lo) + ' to ' + xf(e.hi) + (e.stable ? '' : ': the direction is not consistent when re-tested') + '">' +
+    '<span>' + e.name + (e.stable ? '' : '<span class="q">direction uncertain</span>') + '</span>' +
+    '<span class="wbar" aria-hidden="true"><span class="ax"></span><span class="fill" style="left:' + l.toFixed(1) + '%;width:' + w(e.v).toFixed(1) + '%;background:' + col + '"></span>' +
+    '<span class="wh" style="left:' + a.toFixed(1) + '%;width:' + Math.max(.5, b - a).toFixed(1) + '%"></span></span>' +
+    '<span class="wv">' + xf(e.v) + '</span></button>' + detail;
+}
+function pctAxis(t){
+  const X = p => 8 + (p - 1) / 99 * 284;
+  let s = '<svg viewBox="0 0 300 44" role="img" aria-label="Crash-risk percentile ' + t[20] + ', 90% range ' + t[21] + ' to ' + t[22] + (t[23] != null ? ', second model ' + t[23] : '') + '">';
+  [1, 25, 50, 75, 100].forEach(p => s += '<line x1="' + X(p) + '" x2="' + X(p) + '" y1="20" y2="25" stroke="var(--line)"/><text x="' + X(p) + '" y="38" text-anchor="middle">' + p + '</text>');
+  s += '<line x1="' + X(1) + '" x2="' + X(100) + '" y1="20" y2="20" stroke="var(--line)" stroke-width="2"/>';
+  if (t[21] != null) s += '<rect x="' + X(t[21]) + '" y="14" width="' + Math.max(2, X(t[22]) - X(t[21])) + '" height="12" rx="3" fill="var(--r1)" opacity=".8"/>';
+  if (t[23] != null) s += '<path d="M' + X(t[23]) + ' 13 l5 6 -5 6 -5 -6z" fill="var(--surface)" stroke="var(--ink2)" stroke-width="1.5"/>';
+  s += '<circle cx="' + X(t[20]) + '" cy="20" r="6" fill="' + (rampColor(t[20], PCT_STOPS) || pal["--r2"]) + '" stroke="var(--ink)" stroke-width="1.5"/>';
+  return s + '</svg>';
+}
+function evidence(i){
+  const t = T[i], o = OBS[i], a = ANAL[i];
+  let h = "";
+  if (t[8] || t[24] > 0) h += '<p class="ev">' + (t[8] ? "In a deployment filing" : "Listed earlier, not now") + (t[25] ? " since " + t[25] : "") + " (" + t[24] + " months listed, any operator).</p>";
+  if (o){
+    const [y, mu, r, lo, hi] = o, c = lo > 1 ? "above" : hi < 1 ? "below" : "in line";
+    const P = EX.summary.persistence, rel = P["above expected in 2025"].ratio / P["neither"].ratio;
+    h += '<div class="ev"><span><b>' + y + ' reported collision' + (y === 1 ? '' : 's') + '</b> in 2025Q1–2026Q2; the model expects <b>' + mu.toFixed(1) + '</b> for a tract with these features and months in service.</span>' +
+      '<span>Adjusted ratio ' + r.toFixed(2) + '× (likely range ' + lo.toFixed(2) + '×–' + hi.toFixed(2) + '×; pulled toward 1× so one unlucky quarter can\'t look like a hot spot): <span class="tag ' + (c === "above" ? "up" : c === "below" ? "dn" : "") + '">' + (c === "in line" ? "in line with the model" : c + " expected") + '</span></span>' +
+      (c === "above" ? '<span>Worth a look: a depot, a busy pick-up zone or a hard intersection. In a test, tracts above expected in 2025 stayed about ' + rel.toFixed(1) + '× the rest in 2026 (' + P["above expected in 2025"].tracts + ' tracts, ' + P["above expected in 2025"].observed + ' collisions), so the excess partly persists.</span>' : '') + '</div>';
+  } else if (t[8]) h += '<p class="ev">No 2025–26 collision record for this tract in the filings used by the model.</p>';
+  if (a){
+    const [refs, near, gaps] = a;
+    let on = 0, onListed = 0, off = {};
+    refs.forEach(r => { if (r >= 0){ on++; if (T[r][24] > 0) onListed++; } else { const k = -r - 1, c = OFFC[k >> 1]; off[c] = off[c] || [0, 0]; off[c][0]++; off[c][1] += k & 1; } });
+    const offL = Object.values(off).reduce((s, v) => s + v[1], 0), listed = onListed + offL;
+    const offTxt = Object.entries(off).sort((p, q) => q[1][0] - p[1][0]).map(([c, v]) => c + " " + v[0] + (FILED.has(c) ? "" : "*")).join(", ");
+    const nearTxt = typeof near === "number" ? '<button type="button" class="linkbtn" data-goto="' + near + '">tract ' + T[near][9] + '</button> (' + (T[near][17] || D.counties[T[near][2]]) + ')'
+      : 'tract ' + near[0] + ' (' + near[1] + ' County, off this map)';
+    const gl = gaps.map(([fi, z]) => esc(LAB[EX.gapFeatures[fi]][0].toLowerCase()) + ' (' + (z > 0 ? "higher" : "lower") + ' here, ' + Math.abs(z).toFixed(1) + ' SD)');
+    h += '<div class="ev"><span><b>Places like this one:</b> ' + listed + ' of its 25 closest look-alikes (by census and road features, anywhere in California) have been in a filing; weighted by months listed, analogue coverage is ' + pct(t[12]) + '.</span>' +
+      '<span>On this map: ' + on + (onListed ? ' (' + onListed + ' listed)' : '') + (offTxt ? '. Elsewhere: ' + offTxt : '') + (offTxt.includes("*") ? ' (* no tract in a filing)' : '') + '.</span>' +
+      '<span><button type="button" class="ibtn" id="analbtn" aria-pressed="' + showAnal + '">' + (showAnal ? "Hide" : "Show") + ' look-alikes on the map</button></span>' +
+      '<span>Closest tract in a filing: ' + nearTxt + ', ' + x2(t[13]) + '× the typical distance between listed tracts' + (t[13] > 2 ? ', far outside driven conditions' : '') + '. It differs most in ' + listAnd(gl) + '.</span></div>';
+  }
+  if (FUT && (t[10] === 1 || t[10] === 2)) h += '<p class="ev"><span><b>If service started here:</b> ' + futLine() + ' Until then, the look-alikes above are the evidence.</span></p>';
+  h += '<p class="ev">DMV-reported AV crashes 2019–24: <b>' + (t[19] ? (+t[19]).toFixed(t[19] % 1 ? 1 : 0) + (t[18] !== t[19] ? ' (' + (+t[18]).toFixed(t[18] % 1 ? 1 : 0) + ' in autonomous mode)' : '') : 'none reported') + '</b>' +
+    (t[19] % 1 || t[18] % 1 ? ' (a crash on a tract boundary is split between the tracts it touches)' : '') + '.</p>';
+  return h;
+}
+let CUR = -1;
+function renderTract(){
+  const el = $("#tbody");
+  if (pick < 0){
+    el.innerHTML = '<div class="empty">Click a tract on the map, search for one, or pick a row in the ranked list to see why it scores the way it does, how sure the model is, and what the record shows.</div>';
+    return;
+  }
+  const i = pick, t = T[i], s = t[10], E = explain(i); CUR = i;
+  const where = esc((t[17] ? t[17] + " · " : "") + (t[2] >= 0 ? D.counties[t[2]] + " County" : ""));
+  let h = '<div class="tcard"><div class="tc-head"><div><div class="eyebrow">Selected tract</div><h3>' + t[9] + '</h3><div class="where">' + where + '</div></div>' +
+    '<div class="tc-actions"><button type="button" class="ibtn" id="pinbtn" aria-pressed="' + (pin === i) + '">' + (pin === i ? "Pinned" : "Pin to compare") + '</button>' +
+    '<button type="button" class="ibtn" id="clearbtn" aria-label="Close this tract">×</button></div></div>' +
+    '<div class="chips"><span class="chip ' + ["served", "watch", "flag", "none"][s] + '">' + STATUS[s] + '</span>' + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
+    disSection(i) +
+    (DIS[i] ? '<h4 class="tc-sub">Crash risk · a second, independent model</h4>' : '') + '<p class="lead">' + summaryText(i) + '</p>';
+  if (t[20] != null){
+    h += '<div class="sec"><div class="pctaxis">' + pctAxis(t) + '</div><div class="axkey"><span>● main model</span><span style="color:var(--ink2)"><i style="display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--r1);vertical-align:middle"></i> 90% range</span>' +
+      (t[23] != null ? '<span>◇ second model (DMV 2019–24): ' + ord(t[23]) + '</span>' : '') + '</div></div>';
+  }
+  if (E){
+    h += '<div class="sec"><h4>Why this score</h4><p class="hint">Each factor multiplies expected collisions against a typical listed tract (median of each feature over tracts in a filing; it scores ' + xf(EX.constant) + '). Together they give this tract ' + xf(logRisk(i)) +
+      '. Thin line: likely range from 200 re-tests of the model. Click a row for its features.</p><div class="why">' + E.map(e => barRow(e, "t")).join("") + '</div></div>';
+    if (pin >= 0 && pin !== i && FEAT[pin]){
+      const Ec = explain(i, pin), tot = Ec.reduce((a, e) => a + e.v, 0), [lo, hi] = totalRange(i, pin), p = T[pin];
+      h += '<div class="sec"><h4>Compared with the pinned tract</h4><p class="hint">Tract <button type="button" class="linkbtn" data-goto="' + pin + '">' + p[9] + '</button> (rank ' + p[20] + ' of 100). This tract expects <b>' + xf(tot) + '</b> its collisions (likely range ' + xf(lo) + '–' + xf(hi) + ')' +
+        (lo > 0 ? ': clearly higher.' : hi < 0 ? ': clearly lower.' : ': the re-tests do not agree on which is higher.') + '</p><div class="why">' + Ec.map(e => barRow(e, "p")).join("") + '</div>' +
+        '<span><button type="button" class="ibtn" id="unpinbtn">Unpin</button></span></div>';
+    }
+  }
+  h += '<div class="sec"><h4>Evidence</h4>' + '<p class="hint">' + STATUS_TXT[s] + '</p>' + evidence(i) + '</div>';
+  h += '<div class="sec"><h4>Who lives here</h4><dl class="kv"><dt>Residents</dt><dd>' + fmt(t[3]) + '</dd><dt>Median income</dt><dd>' + money(t[4]) + '</dd>' +
+    '<dt>Hispanic</dt><dd>' + pct(t[5]) + '</dd><dt>Black</dt><dd>' + pct(t[6]) + '</dd><dt>Households with no car</dt><dd>' + pct(t[7]) + '</dd></dl></div>';
+  h += '<p class="hint" style="font-size:12px;color:var(--ink2)">Crash risk ranks expected AV collisions per quarter if this tract were served like a typical year-old listed tract. It counts every reported collision, whoever was at fault, so it measures exposure to conflict and assigns no blame. The factors describe what the model responds to, not causes: marked crossings stand in for foot traffic and busy streets.</p></div>';
+  el.innerHTML = h;
+}
+$("#tbody").addEventListener("click", e => {
+  const row = e.target.closest(".wrow");
+  if (row){ const d = document.getElementById(row.getAttribute("aria-controls")); const open = row.getAttribute("aria-expanded") === "true";
+    row.setAttribute("aria-expanded", !open); d.hidden = open; return; }
+  const g = e.target.closest("[data-goto]"); if (g){ selectTract(+g.dataset.goto, true); return; }
+  if (e.target.id === "pinbtn"){ pin = pin === pick ? -1 : pick; renderTract(); draw(); toast(pin >= 0 ? "Pinned. Select another tract to compare." : "Unpinned."); return; }
+  if (e.target.id === "unpinbtn"){ pin = -1; renderTract(); draw(); return; }
+  if (e.target.id === "analbtn"){ showAnal = !showAnal; renderTract(); draw(); if (showAnal && ANAL[pick]) fitTo([pick, ...ANAL[pick][0].filter(r => r >= 0)]); return; }
+  if (e.target.id === "clearbtn"){ pick = -1; showAnal = false; renderTract(); draw(); markRow(); }
+});
 function selectTract(i, fly){
-  const t = T[i]; pick = i;
-  const ch = $("#clickhint"); if (ch) ch.classList.add("gone");
+  const t = T[i]; if (pick !== i) showAnal = false; pick = i;
   if (fly){ view = { lon:t[0], lat:t[1], z:Math.max(view.z, 14) }; }
-  const s = t[10], c = t[2] >= 0 ? D.counties[t[2]] : "–";
-  const ood = t[13] == null ? "–" : x2(t[13]) + (t[13] > 2 ? " (outside driven conditions)" : t[13] <= 1 ? " (typical)" : "");
-  const ord = v => v == null ? "–" : v + (v % 100 >= 11 && v % 100 <= 13 ? "th" : ["th","st","nd","rd"][v % 10] || "th");
-  const dg = VARIANT === "disengagement";
-  $("#tbody").innerHTML = '<div class="tcard"><div class="eyebrow">Selected tract</div><h3>Tract ' + t[9] + '</h3>' +
-    '<dl class="kv"><dt>Disengagement risk</dt><dd><b>' + ord(t[20]) + '</b> percentile</dd>' +
-    '<dt>90% range</dt><dd>' + (t[21] == null ? "–" : ord(t[21]) + '–' + ord(t[22])) + '</dd>' +
-    (dg ? '' : '<dt>Second model <small>(DMV 2019–24, all companies)</small></dt><dd>' + ord(t[23]) + '</dd>') + '</dl>' +
-    '<div class="chips"><span class="chip ' + ["served", "watch", "flag", "none"][s] + '">' + STATUS[s] + '</span></div>' +
-    '<p class="note' + (s === 2 ? ' find' : '') + '" style="margin:0">' + STATUS_TXT[s] + '</p>' +
-    '<dl class="kv"><dt>' + (dg ? "Risk vs. statewide average" : "Risk vs. typical tract") + ' <small>(ratio)</small></dt><dd>' + (t[11] == null ? "–" : x2(t[11]) + "×") + '</dd>' +
-    '<dt>Ratio range</dt><dd>' + (range(t) || "–") + '</dd>' + (t[17] ? '<dt>City</dt><dd style="font-family:inherit">' + t[17] + '</dd>' : '') +
-    (dg
-      ? '<dt>Road mix</dt><dd>' + dominantRoad(t) + '</dd>' +
-        '<dt>Est. disengagements <small>(per million miles)</small></dt><dd>' + (t[28] == null ? "–" : fmt(t[28])) + '</dd>' +
-        '<dt>Sample size <small>(disengagements behind this road mix)</small></dt><dd>' + (t[24] == null ? "–" : fmt(t[24])) + '</dd>' +
-        '<dt>Residents</dt><dd>' + fmt(t[3]) + '</dd>'
-      : '<dt>Similar tracts driven <small>(of its 25 closest look-alikes)</small></dt><dd>' + pct(t[12]) + '</dd><dt>How unlike anywhere driven</dt><dd>' + ood + '</dd>' +
-        (t[29] ? '<dt>Top drivers</dt><dd>' + t[29] + (t[30] === "+" ? " ↑" : " ↓") + (t[31] ? ', ' + t[31] + (t[32] === "+" ? " ↑" : " ↓") : '') + '</dd>' : '') +
-        '<dt>Residents</dt><dd>' + fmt(t[3]) + '</dd><dt>Median income</dt><dd>' + money(t[4]) + '</dd>' +
-        '<dt>AV crashes 2019–24 <small>(DMV, as reported)</small></dt><dd>' + (t[19] ? (+t[19]).toFixed(t[19] % 1 ? 1 : 0) + (t[18] !== t[19] ? ' <small>(' + (+t[18]).toFixed(t[18] % 1 ? 1 : 0) + ' autonomous)</small>' : '') : 'none reported') + '</dd>') + '</dl>' +
-    '<p class="sub" style="margin:0;font-size:12.5px;color:var(--ink2)">' +
-    (dg
-      ? 'Disengagement risk compares this tract’s road mix (freeway/arterial/local street) to how much disengagements concentrate on each road type statewide, across 39 companies — not Waymo-specific. It is a relative concentration ratio, not a measured rate for this exact tract.'
-      : 'Disengagement risk ranks expected AV collisions per quarter if this tract were served like a typical year-old tract (place risk is the same as a ratio to the median served tract). It measures exposure to conflict, not blame' +
-        (t[14] ? '.' : '. <b>This tract is outside the conditions driven so far, so the figure is an extrapolation.</b>')) + '</p></div>';
-  $("#tbody").hidden = false;
+  renderTract(); markRow(); $("#side").scrollTop = 0;
   if (t[2] >= 0) renderCounty(t[2]); else draw();
 }
 
 /* ---------------- search ---------------- */
 const byGeo = new Map(T.map((t, i) => [t[9], i]));
 const CITIES = [...new Set(T.map(t => t[17]).filter(Boolean))].sort();
-$("#qlist").innerHTML = D.counties.map(c => '<option value="' + c + ' County">').join("") + CITIES.map(c => '<option value="' + c + '">').join("");
+$("#qlist").innerHTML = D.counties.map(c => '<option value="' + c + ' County">').join("") + CITIES.map(c => '<option value="' + esc(c) + '">').join("");
 const centre = rows => ({ lon:rows.reduce((a, t) => a + t[0], 0) / rows.length, lat:rows.reduce((a, t) => a + t[1], 0) / rows.length });
 $("#find").addEventListener("submit", e => {
   e.preventDefault();
@@ -687,12 +1151,9 @@ $("#find").addEventListener("submit", e => {
   if (city){
     const rows = T.filter(t => t[17] === city);
     view = { ...centre(rows), z:Math.max(6, Math.min(20, 40 / Math.sqrt(rows.length))) };
-    pick = -1; $("#tbody").hidden = true; renderCounty(rows[0][2]); return;
+    renderCounty(rows[0][2]); return;
   }
-  if (ci >= 0){
-    view = { ...centre(T.filter(t => t[2] === ci)), z:5 };
-    pick = -1; $("#tbody").hidden = true; renderCounty(ci); return;
-  }
+  if (ci >= 0){ view = { ...centre(T.filter(t => t[2] === ci)), z:5 }; renderCounty(ci); return; }
   const d = q.replace(/\D/g, "");
   let i = byGeo.get(d.padStart(11, "0"));
   if (i == null && d.length >= 4) i = T.findIndex(t => t[9].endsWith(d.padStart(6, "0")));
@@ -701,56 +1162,228 @@ $("#find").addEventListener("submit", e => {
   setTimeout(() => $("#q").setCustomValidity(""), 2500);
 });
 
-/* ---------------- flag list ---------------- */
-const fsel = $("#flagc");
-fsel.innerHTML = '<option value="">All counties on the map</option>' + D.counties.map(c => '<option>' + c + '</option>').join("");
-const wsel = $("#flagw");
-function flagList(){
-  const want = fsel.value, unserved = wsel.value === "unserved";
-  const all = T.map((t, i) => i).filter(i => T[i][20] != null && (!want || D.counties[T[i][2]] === want) && (!unserved || !T[i][8]));
-  const ranked = all.filter(i => T[i][14] && T[i][3] >= 500).sort((a, b) => T[b][20] - T[a][20] || T[b][11] - T[a][11]);
-  const ext = all.filter(i => !T[i][14]).length;
-  $("#flag-sub").innerHTML = '<b>' + fmt(all.length) + (unserved ? ' tracts not yet in the service area' : ' tracts') + '</b>' + (want ? ' in ' + want : '') +
-    ', ranked by disengagement risk (top 40 shown). The list leaves out ' + fmt(ext) + ' tracts outside the conditions driven so far, where the model would be extrapolating, and tracts with under 500 residents. ' +
-    (VARIANT === "disengagement"
-      ? 'A leave-one-company-out check found this road-type pattern does not yet reliably generalize to a company not in the training data — treat rankings as directional, not precise. '
-      : 'Read it within a county: across metros the level can be off by about ×/÷2.6. ') +
-    'Click a row to find the tract on the map.';
-  $("#flags tbody").innerHTML = ranked.slice(0, 40).map(i => { const t = T[i];
-    return '<tr tabindex="0" data-i="' + i + '"><td>' + t[9] + '</td><td>' + D.counties[t[2]] + '</td><td>' + fmt(t[3]) + '</td><td>' + t[20] + '</td><td class="rng">' + t[21] + '–' + t[22] + '</td><td>' + (VARIANT === "disengagement" ? fmt(t[24]) : (t[23] ?? "–")) + '</td><td>' + STATUS[t[10]] + '</td></tr>'; }).join("") ||
-    '<tr><td colspan="7">No tracts.</td></tr>';
-  flagRows = all;
+/* ---------------- ranked table ---------------- */
+const COLS = [
+  { k:"geoid", label:"Tract", v:i => T[i][9], td:i => T[i][9] },
+  { k:"place", label:"Place", v:i => T[i][17] || D.counties[T[i][2]], td:i => esc(T[i][17] || D.counties[T[i][2]]) },
+  { k:"res", label:"Residents", v:i => T[i][3], td:i => fmt(T[i][3]) },
+  { k:"dis", label:"Diseng. / mile", title:"Disengagement risk per mile against an average California road mile (notebook 17; no crash data)", v:i => DIS[i] ? DIS[i][0] : -1, td:i => DIS[i] ? xr(DIS[i][0]) : "–" },
+  { k:"disr", label:"Likely range", title:"The range this estimate could fall in, from simulating the uncertainty behind it 200 times", v:i => DIS[i] ? DIS[i][2] - DIS[i][1] : -1, td:i => DIS[i] ? DIS[i][1].toFixed(2) + "–" + DIS[i][2].toFixed(2) : "–", cls:"rng" },
+  { k:"risk", label:"Crash risk", title:"Rank out of 100 tracts on this map, by expected collisions at a standard service level", v:i => T[i][20], td:i => T[i][20] },
+  { k:"rng", label:"Likely range", title:"How much the ranking could move if the model were retrained on different neighbourhoods", v:i => T[i][22] - T[i][21], td:i => T[i][21] + "–" + T[i][22], cls:"rng" },
+  { k:"risk2", label:"Second model", title:"Rank (of 100) from a second, independent model, trained on DMV crash reports 2019–24 from every company", v:i => T[i][23] ?? -1, td:i => T[i][23] ?? "–" },
+  { k:"obs", label:"Collisions 25–26", title:"Collisions reported to the CPUC 2025Q1–2026Q2 (see 'vs expected' for how that compares to the model)", v:i => OBS[i] ? OBS[i][0] : -1, td:i => OBS[i] ? OBS[i][0] : "–" },
+  { k:"exc", label:"vs expected", title:"Collisions vs. the model's expectation, adjusted so one unlucky quarter can't look like a hot spot; arrow means consistently above or below", v:i => OBS[i] ? OBS[i][2] : -1, td:i => OBS[i] ? OBS[i][2].toFixed(2) + "×" + (OBS[i][3] > 1 ? " ▲" : OBS[i][4] < 1 ? " ▼" : "") : "–" },
+  { k:"status", label:"Status", v:i => T[i][10], td:i => STATUS[T[i][10]] },
+];
+let SORT = { k:DIS.some(Boolean) ? "dis" : "risk", dir:-1 }, tableRows = [];
+const SHOW = 200;
+$("#flaghead").innerHTML = COLS.map(c => '<th' + (c.title ? ' title="' + c.title + '"' : '') + ' data-k="' + c.k + '"><button type="button">' + c.label + '</button></th>').join("");
+function sortedMatches(minPop){
+  const c = COLS.find(c => c.k === SORT.k);
+  return T.map((t, i) => i).filter(i => MATCH[i] && T[i][20] != null && T[i][3] >= minPop)
+    .sort((a, b) => { const x = c.v(a), y = c.v(b); return (x < y ? -1 : x > y ? 1 : 0) * SORT.dir || T[b][20] - T[a][20]; });
 }
-wsel.addEventListener("change", flagList);
-let flagRows = [];
-const EXPORT_COLS = VARIANT === "disengagement"
-  ? ["geoid","county","city","residents","disengagement_risk_percentile","percentile_lo_90","percentile_hi_90","sample_size","risk_multiplier","risk_extrapolated","status","median_income"]
-  : ["geoid","county","city","residents","disengagement_risk_percentile","percentile_lo_90","percentile_hi_90","second_model_percentile","place_risk_ratio","risk_extrapolated","status","analogue_coverage","median_income"];
-const exportRow = t => VARIANT === "disengagement"
-  ? [t[9], D.counties[t[2]], t[17], t[3], t[20], t[21], t[22], t[24], t[11], t[14] ? 0 : 1, STATUS[t[10]], t[4]]
-  : [t[9], D.counties[t[2]], t[17], t[3], t[20], t[21], t[22], t[23], t[11], t[14] ? 0 : 1, STATUS[t[10]], t[12], t[4]];
-const exportRanked = () => flagRows.slice().sort((a, b) => (T[b][20] || 0) - (T[a][20] || 0));
-function download(text, type, ext){
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = Object.assign(document.createElement("a"), { href:url, download:"disengagement_risk_tracts" + (fsel.value ? "_" + fsel.value.replace(/\W+/g, "_") : "") + ext });
+let tableQueued = false;
+function scheduleTable(){ if (!tableQueued){ tableQueued = true; requestAnimationFrame(() => { tableQueued = false; renderTable(); }); } }
+function renderTable(){
+  tableRows = sortedMatches(500);
+  document.querySelectorAll("#flaghead th").forEach(th => th.dataset.k === SORT.k ? th.setAttribute("aria-sort", SORT.dir < 0 ? "descending" : "ascending") : th.removeAttribute("aria-sort"));
+  const all = T.filter((t, i) => MATCH[i]).length;
+  $("#flag-sub").innerHTML = '<b>' + fmt(tableRows.length) + ' tracts</b> match the map\'s filters' + (tableRows.length > SHOW ? ' (first ' + SHOW + ' shown; the downloads have all ' + fmt(all) + ' matching tracts)' : '') +
+    '. Tracts with under 500 residents are left out of this list' + (FILT.reliable ? ', and so are tracts outside the conditions driven so far, where the model would be extrapolating' : '') +
+    '. Read crash risk within a county: across metros the level can be off by about ×/÷2.6. Click a column to sort, a row to explain it on the map.';
+  $("#flags tbody").innerHTML = tableRows.slice(0, SHOW).map(i => '<tr tabindex="0" data-i="' + i + '"' + (i === pick ? ' class="sel"' : '') + '>' +
+    COLS.map(c => '<td' + (c.cls ? ' class="' + c.cls + '"' : '') + '>' + c.td(i) + '</td>').join("") + '</tr>').join("") ||
+    '<tr><td colspan="' + COLS.length + '">No tracts match the filters.</td></tr>';
+}
+function markRow(){ document.querySelectorAll("#flags tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.i === pick)); }
+$("#flaghead").addEventListener("click", e => { const th = e.target.closest("th"); if (!th) return;
+  SORT = { k:th.dataset.k, dir:SORT.k === th.dataset.k ? -SORT.dir : (["geoid", "place", "status"].includes(th.dataset.k) ? 1 : -1) }; renderTable(); });
+const openRow = e => { const tr = e.target.closest("tr[data-i]"); if (!tr) return; selectTract(+tr.dataset.i, true); $("#mapsec").scrollIntoView({ behavior:"smooth", block:"start" }); };
+$("#flags tbody").addEventListener("click", openRow);
+$("#flags tbody").addEventListener("keydown", e => { if (e.key === "Enter") openRow(e); });
+
+/* ---------------- exports ---------------- */
+const EXPORT_COLS = ["geoid","county","city","residents","crash_risk_percentile","percentile_lo_90","percentile_hi_90","second_model_percentile","place_risk_ratio",
+  "risk_extrapolated","status","analogue_coverage","median_income","main_factor","main_factor_multiplier","cpuc_collisions_2025_26","expected_2025_26",
+  "observed_vs_expected","observed_vs_expected_lo_90","observed_vs_expected_hi_90",
+  "disengagement_risk_per_mile","disengagement_risk_lo_90","disengagement_risk_hi_90","disengagement_largest_term"];
+const exportRow = i => { const t = T[i], tf = topFactor(i), o = OBS[i] || [];
+  return [t[9], D.counties[t[2]], t[17], t[3], t[20], t[21], t[22], t[23], t[11], t[14] ? 0 : 1, STATUS[t[10]], t[12], t[4],
+    tf ? tf.name + ": " + phrase(tf) : null, tf ? +Math.exp(tf.v).toFixed(2) : null, o[0], o[1], o[2], o[3], o[4],
+    ...(DIS[i] ? DIS[i].slice(0, 4) : [null, null, null, null])]; };
+let downloadsP = null;
+async function download(text, ext){
+  const name = "crash_risk_tracts" + (FILT.county !== "" ? "_" + D.counties[+FILT.county].replace(/\W+/g, "_") : "") + ext;
+  if (window.claude && window.claude.use){
+    downloadsP = downloadsP || window.claude.use("downloads").catch(() => null);
+    const dl = await downloadsP;
+    if (dl){
+      try { await dl.save({ filename:name.replace(/\.geojson$/, ".geo.json"), data:text }); toast("Saved " + name.replace(/\.geojson$/, ".geo.json")); }
+      catch (err){ if (err && err.code !== "declined") toast("This view cannot save files (" + (err.code || "unavailable") + ")."); }
+      return;
+    }
+  }
+  const url = URL.createObjectURL(new Blob([text], { type:ext === ".csv" ? "text/csv" : "application/geo+json" }));
+  const a = Object.assign(document.createElement("a"), { href:url, download:name });
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 $("#flagcsv").addEventListener("click", () => {
-  const q = v => v == null ? "" : (/[",]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v);
-  const body = exportRanked().map(i => exportRow(T[i]).map(q).join(","));
-  download([EXPORT_COLS.join(","), ...body, ""].join("\n"), "text/csv", ".csv");
+  const q = v => v == null ? "" : (/[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v);
+  download([EXPORT_COLS.join(","), ...sortedMatches(0).map(i => exportRow(i).map(q).join(",")), ""].join("\n"), ".csv");
 });
 $("#flaggeo").addEventListener("click", () => {
-  const features = exportRanked().map(i => { const t = T[i], v = exportRow(t);
-    return { type:"Feature", geometry:{ type:"Point", coordinates:[t[0], t[1]] },
-             properties:Object.fromEntries(EXPORT_COLS.map((k, j) => [k, v[j] ?? null])) }; });
-  download(JSON.stringify({ type:"FeatureCollection", name:"AV Validation Gap tract centroids, CPUC filing " + D.asOf, features }),
-           "application/geo+json", ".geojson");
+  const features = sortedMatches(0).map(i => { const v = exportRow(i);
+    return { type:"Feature", geometry:{ type:"Point", coordinates:[T[i][0], T[i][1]] }, properties:Object.fromEntries(EXPORT_COLS.map((k, j) => [k, v[j] ?? null])) }; });
+  download(JSON.stringify({ type:"FeatureCollection", name:"AV Validation Gap tract centroids, CPUC filing " + D.asOf, features }), ".geojson");
 });
-fsel.addEventListener("change", flagList);
-const openRow = e => { const tr = e.target.closest("tr[data-i]"); if (!tr) return; selectTract(+tr.dataset.i, true); $("#mapbox").scrollIntoView({ behavior:"smooth", block:"center" }); };
-$("#flags").addEventListener("click", openRow);
-$("#flags").addEventListener("keydown", e => { if (e.key === "Enter") openRow(e); });
+
+/* ---------------- shareable view ---------------- */
+// The view is kept as one plain token after "#" (letters, digits and . _ ~ - only), e.g. #lrisk_t06037226002_v-118.300~34.020~7.00
+function stateToken(){
+  const p = ["l" + layer, "v" + [view.lon.toFixed(3), view.lat.toFixed(3), view.z.toFixed(2)].join("~")];
+  if (pick >= 0) p.push("t" + T[pick][9]);
+  if (pin >= 0) p.push("p" + T[pin][9]);
+  if (FILT.lo > 1 || FILT.hi < 100) p.push("r" + FILT.lo + "-" + FILT.hi);
+  if (FILT.status.size !== hasStatus.length) p.push("s" + [...FILT.status].sort().join(""));
+  if (FILT.county !== "") p.push("c" + FILT.county);
+  if (!FILT.reliable) p.push("x");
+  if (showAnal) p.push("a");
+  if (cellMode) p.push("g");
+  return p.join("_");
+}
+function applyToken(tok){
+  if (!tok) return false;
+  let ok = false;
+  tok.split("_").forEach(part => {
+    const k = part[0], v = part.slice(1);
+    if (k === "l" && LAYERS[v]){ setLayer(v); ok = true; }
+    else if (k === "v"){ const [a, b, c] = v.split("~").map(Number); if ([a, b, c].every(isFinite)){ view = { lon:a, lat:b, z:c }; ok = true; } }
+    else if (k === "t" && byGeo.has(v)){ pick = byGeo.get(v); ok = true; }
+    else if (k === "p" && byGeo.has(v)) pin = byGeo.get(v);
+    else if (k === "r"){ const [a, b] = v.split("-").map(Number); if (a >= 1 && b <= 100 && a <= b){ FILT.lo = a; FILT.hi = b; } }
+    else if (k === "s") FILT.status = new Set([...v].map(Number).filter(s => hasStatus.includes(s)));
+    else if (k === "c" && D.counties[+v]) FILT.county = v;
+    else if (k === "x") FILT.reliable = false;
+    else if (k === "a") showAnal = true;
+    else if (k === "g") cellMode = true;
+  });
+  return ok;
+}
+let saveTimer = null;
+function saveState(){ clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { history.replaceState(null, "", "#" + stateToken()); } catch (e) {} }, 400); }
+$("#copylink").addEventListener("click", async () => {
+  const framed = window.top !== window, tok = "#" + stateToken();
+  const text = framed ? tok : location.href.split("#")[0] + tok;
+  try { await navigator.clipboard.writeText(text);
+    toast(framed ? "Copied this view's code. Add it to the end of the page's link to open this exact view." : "Link to this view copied.");
+  } catch (e){ toast("Copy this view's " + (framed ? "code" : "link") + ":", text); }
+});
+
+/* ---------------- toast and chart tooltips ---------------- */
+let toastTimer = null;
+function toast(msg, sel){
+  const el = $("#toast"); el.textContent = msg;
+  if (sel){ const inp = Object.assign(document.createElement("input"), { value:sel, readOnly:true }); el.appendChild(inp); setTimeout(() => inp.select(), 0); }
+  el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, sel ? 9000 : 3500);
+}
+(function chartTips(){
+  const tipEl = $("#ctip");
+  const place = (x, y) => { const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    tipEl.style.left = Math.max(8, Math.min(x + 14, innerWidth - w - 8)) + "px";
+    tipEl.style.top = Math.max(8, y - h - 12) + "px"; };
+  document.addEventListener("pointermove", e => {
+    const g = e.target.closest && e.target.closest(".chart [data-tip]");
+    if (!g){ if (!tipEl.dataset.pinned) tipEl.hidden = true; return; }
+    if (tipEl.dataset.pinned) return;
+    tipEl.innerHTML = g.dataset.tip; tipEl.hidden = false; place(e.clientX, e.clientY);
+  });
+  // info icons: tap or click to toggle, so they work without hover (touch devices)
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest(".infoicon[data-tip]");
+    if (!b){ if (tipEl.dataset.pinned){ tipEl.hidden = true; delete tipEl.dataset.pinned; } return; }
+    if (tipEl.dataset.pinned === b.dataset.tip){ tipEl.hidden = true; delete tipEl.dataset.pinned; return; }
+    tipEl.innerHTML = b.dataset.tip; tipEl.hidden = false; tipEl.dataset.pinned = b.dataset.tip;
+    const r = b.getBoundingClientRect(); place(r.left, r.top);
+  });
+})();
+
+/* ---------------- what drives the map ---------------- */
+function spearman(a, b){
+  const rank = v => { const o = v.map((x, i) => [x, i]).sort((p, q) => p[0] - q[0]), r = new Array(v.length);
+    for (let i = 0; i < o.length;){ let j = i; while (j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for (let k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2; i = j + 1; } return r; };
+  const ra = rank(a), rb = rank(b), n = a.length, ma = (n - 1) / 2;
+  let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++){ const x = ra[i] - ma, y = rb[i] - ma; sab += x * y; saa += x * x; sbb += y * y; }
+  return sab / Math.sqrt(saa * sbb);
+}
+const scored = T.map((t, i) => i).filter(i => FEAT[i] && T[i][11] != null);
+const RHO_X = spearman(scored.map(logRisk), scored.map(i => FEAT[i][F.indexOf("log_crossing_density")]));
+function driversChart(){
+  const q = j => { const s = scored.map(i => FEAT[i][j]).sort((a, b) => a - b); return [quant(s, .25), quant(s, .75)]; };
+  const R = F.map((f, j) => { const [a, b] = q(j), d = b - a, bs = BOOT.map(r => r[j] * d).sort((p, q) => p - q);
+    return { f, j, a, b, e:COEF[j] * d, lo:quant(bs, .05), hi:quant(bs, .95), e2:COEF2[j] * d, same:BOOT.filter(r => Math.sign(r[j]) === Math.sign(COEF[j])).length / BOOT.length }; })
+    .sort((p, q) => q.e - p.e);
+  const w = 720, lw = 210, rw = 20, rowH = 26, top = 8, h = top + R.length * rowH + 30;
+  const lo = Math.log(.5), hi = Math.log(32), x = v => lw + (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * (w - lw - rw);
+  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Multiplier on expected collisions from the 25th to the 75th percentile of each model feature">';
+  [.5, 1, 2, 4, 8, 16, 32].forEach(v => s += '<line x1="' + x(Math.log(v)) + '" x2="' + x(Math.log(v)) + '" y1="' + top + '" y2="' + (h - 24) + '" stroke="' + (v === 1 ? "var(--ink2)" : "var(--line)") + '"/>' +
+    '<text x="' + x(Math.log(v)) + '" y="' + (h - 8) + '" text-anchor="middle" class="mono">' + v + '×</text>');
+  R.forEach((r, k) => { const y = top + k * rowH + rowH / 2, f = r.f;
+    const tipTxt = '<b>' + esc(LAB[f][0]) + '</b><br>' + showRaw(f, rawOf(f, r.a)) + ' → ' + showRaw(f, rawOf(f, r.b)) + ' (25th → 75th percentile on this map)<br>Main model ' + xf(r.e) + ' (90% range ' + xf(r.lo) + '–' + xf(r.hi) + ')<br>Second model ' + xf(r.e2) +
+      '<br>Same direction in ' + Math.round(100 * r.same) + '% of re-tests';
+    s += '<g data-tip="' + esc(tipTxt) + '"><rect class="hov" x="0" y="' + (y - rowH / 2) + '" width="' + w + '" height="' + rowH + '" fill="transparent"/>' +
+      '<text x="0" y="' + (y + 4) + '" class="lab">' + esc(LAB[f][0]) + '</text>' +
+      '<line x1="' + x(r.lo) + '" x2="' + x(r.hi) + '" y1="' + y + '" y2="' + y + '" stroke="var(--accent)" stroke-opacity=".35" stroke-width="7" stroke-linecap="round"/>' +
+      '<path d="M' + x(r.e2) + ' ' + (y - 5.5) + ' l5.5 5.5 -5.5 5.5 -5.5 -5.5z" fill="var(--surface)" stroke="var(--ink2)" stroke-width="1.5"/>' +
+      '<circle cx="' + x(r.e) + '" cy="' + y + '" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/></g>'; });
+  $("#drivers").innerHTML = s + '</svg>';
+}
+
+/* ---------------- what drives disengagement risk (notebook 17) ---------------- */
+function disLayersChart(){
+  const L = (DM.layers || []).slice().sort((a, b) => b.or - a.or);
+  if (!L.length){ $("#dissec").hidden = true; return; }
+  const w = 720, lw = 230, rw = 84, rowH = 32, top = 26, h = top + L.length * rowH + 30;
+  const lo = .9, hi = 1.35, x = v => lw + (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * (w - lw - rw);
+  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Police-crash check of each specialised disengagement layer: how much more likely its own crash type is">';
+  [.9, 1, 1.1, 1.2, 1.3].forEach(v => s += '<line x1="' + x(v) + '" x2="' + x(v) + '" y1="' + (top - 8) + '" y2="' + (h - 24) + '" stroke="' + (v === 1 ? "var(--ink2)" : "var(--line)") + '"/>' +
+    '<text x="' + x(v) + '" y="' + (h - 8) + '" text-anchor="middle" class="mono">' + v.toFixed(1) + '×</text>');
+  s += '<text x="' + (w - rw + 8) + '" y="' + (top - 10) + '" class="mono">reports</text>';
+  L.forEach((l, k) => { const y = top + k * rowH + rowH / 2, col = l.raises ? "var(--accent)" : "var(--muted)";
+    const tipTxt = '<b>' + esc(cap(l.feature)) + '</b> · ' + esc(l.situation) + (l.road === "freeway" ? " on freeways" : " on surface streets") + '<br>' + esc(polTip(l)) + '<br>' + fmt(l.reports) + ' DMV reports name this situation';
+    s += '<g data-tip="' + esc(tipTxt) + '"><rect class="hov" x="0" y="' + (y - rowH / 2) + '" width="' + w + '" height="' + rowH + '" fill="transparent"/>' +
+      '<text x="0" y="' + (y - 1) + '" class="lab">' + esc(cap(l.feature)) + '</text>' +
+      '<text x="0" y="' + (y + 12) + '" font-size="10.5">' + esc(l.situation) + (l.road === "freeway" ? ", freeway" : "") + '</text>' +
+      '<line x1="' + x(l.lo) + '" x2="' + x(l.hi) + '" y1="' + y + '" y2="' + y + '" stroke="' + col + '" stroke-opacity=".35" stroke-width="7" stroke-linecap="round"/>' +
+      '<circle cx="' + x(l.or) + '" cy="' + y + '" r="5" fill="' + col + '" stroke="var(--surface)" stroke-width="1.5"/>' +
+      '<text x="' + (w - rw + 8) + '" y="' + (y + 4) + '" class="mono">' + fmt(l.reports) + '</text></g>'; });
+  $("#dislayers").innerHTML = s + '</svg>';
+}
+
+/* ---------------- guided findings ---------------- */
+function findings(){
+  const cards = [];
+  if (DIS.some(Boolean)){
+    const tc = {}; DIS.forEach(d => { if (d && d[3]) tc[d[3]] = (tc[d[3]] || 0) + 1; });
+    const top = Object.entries(tc).sort((a, b) => b[1] - a[1]).slice(0, 2).map(e => e[0]);
+    cards.push({ h:"Takeover risk per mile, checked against crashes",
+      p:'Built only from disengagement reports and road features, no crash data — matches where real AV crashes happened at <b>' + DM.rhoCrashPerKm.toFixed(2) + ' of 1.00</b>. Largest layers: ' + listAnd(top) + '.',
+      b:"Map disengagement risk", go:() => { setLayer("dis"); setFilter({ ...FILT0() }); go("sf"); } });
+  }
+  const fl = T.map((t, i) => i).filter(i => T[i][10] === 2);
+  if (fl.length){
+    const off = {}; fl.forEach(i => (ANAL[i] ? ANAL[i][0] : []).forEach(r => { if (r < 0){ const c = OFFC[(-r - 1) >> 1]; if (!FILED.has(c)) off[c] = (off[c] || 0) + 1; } }));
+    const topC = Object.entries(off).sort((a, b) => b[1] - a[1]).slice(0, 3).map(e => e[0]);
+    cards.push({ h:"Untested: authorised, nothing like it listed",
+      p:'<b>' + fmt(fl.length) + '</b> tracts (' + (fl.reduce((a, i) => a + T[i][3], 0) / 1e6).toFixed(1) + 'M residents) are authorised but barely resemble any listed tract. ' +
+        (topC.length ? 'Many look-alikes sit in ' + listAnd(topC) + ', unfiled.' : ''),
+      b:"Show untested tracts", go:() => { setLayer("stat"); setFilter({ ...FILT0(), status:new Set([2]) }); fitTo(fl); } });
+  }
+  // the Los Angeles trip-equity finding lives in the county card only (next to the table it explains), not duplicated here
+  $("#findings").innerHTML = cards.map((c, k) => '<div class="fcard"><h3>' + c.h + '</h3><p>' + c.p + '</p><button type="button" class="btn" data-f="' + k + '">' + c.b + '</button></div>').join("");
+  $("#findings").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (!b) return; const c = cards[+b.dataset.f]; c.go(); if (!c.stay) $("#mapsec").scrollIntoView({ behavior:"smooth", block:"start" }); });
+}
 
 /* ---------------- risk chart ---------------- */
 function riskChart(){
@@ -762,42 +1395,37 @@ function riskChart(){
     '<text x="' + x(v) + '" y="' + (h - 8) + '" text-anchor="middle" class="mono">' + (v >= 1e6 ? "1M" : v >= 1e3 ? v / 1e3 + "k" : v) + '</text>'; });
   s += '<text x="' + (w - rw + 8) + '" y="' + (top - 10) + '" class="mono">2024 miles</text>';
   R.forEach((d, i) => { const y = top + i * rowH + rowH / 2;
-    s += '<text x="0" y="' + (y + 4) + '" class="lab">' + d.company + '</text>' +
+    const tipTxt = '<b>' + esc(d.company) + '</b><br>Model: ' + fmt(d.model_MPI) + ' miles per disengagement (90% range ' + fmt(d.MPI_lo90) + '–' + fmt(d.MPI_hi90) + ')' +
+      (d.raw_MPI_2024 ? '<br>2024 filed rate: ' + fmt(d.raw_MPI_2024) : '') + '<br>2024 miles: ' + fmt(d.miles_2024);
+    s += '<g data-tip="' + esc(tipTxt) + '"><rect class="hov" x="0" y="' + (y - rowH / 2) + '" width="' + w + '" height="' + rowH + '" fill="transparent"/>' +
+      '<text x="0" y="' + (y + 4) + '" class="lab">' + esc(d.company) + '</text>' +
       '<line x1="' + x(d.MPI_lo90) + '" x2="' + x(d.MPI_hi90) + '" y1="' + y + '" y2="' + y + '" stroke="var(--r1)" stroke-width="6" stroke-linecap="round"/>' +
       (d.raw_MPI_2024 ? '<circle cx="' + x(d.raw_MPI_2024) + '" cy="' + y + '" r="5" fill="var(--surface)" stroke="var(--ink2)" stroke-width="2"/>' : '') +
       '<circle cx="' + x(d.model_MPI) + '" cy="' + y + '" r="5.5" fill="var(--accent)"/>' +
       '<text x="' + (w - rw + 8) + '" y="' + (y + 4) + '" class="mono">' + fmt(d.miles_2024) + '</text>' +
-      (d.MPI_hi90 >= 1e6 ? '<text x="' + (x(1e6) + 6) + '" y="' + (y + 4) + '" class="mono">→</text>' : ''); });
+      (d.MPI_hi90 >= 1e6 ? '<text x="' + (x(1e6) + 6) + '" y="' + (y + 4) + '" class="mono">→</text>' : '') + '</g>'; });
   s += '</svg>';
   $("#risk").innerHTML = s;
 }
 
-/* ---------------- series chart ---------------- */
-function seriesChart(){
-  const S = D.series, w = 560, h = 260, l = 44, r = 12, t = 14, b = 30, n = S.length;
-  const ymax = 2000, x = i => l + i / (n - 1) * (w - l - r), y = v => t + (1 - v / ymax) * (h - t - b);
-  const path = k => { let d = "", prev = null; S.forEach((p, i) => { const v = p[k]; if (v == null){ prev = null; return; }
-    d += (prev == null ? "M" + x(i) + " " + y(v) : "H" + x(i) + "V" + y(v)); prev = v; }); return d; };
-  let s = '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Census tracts listed in filings per month, 2022 to 2026">';
-  [0, 500, 1000, 1500, 2000].forEach(v => s += '<line x1="' + l + '" x2="' + (w - r) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line)"/>' +
-    '<text x="' + (l - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" class="mono">' + fmt(v) + '</text>');
-  S.forEach((p, i) => { if (p.m.endsWith("-01")) s += '<text x="' + x(i) + '" y="' + (h - 8) + '" text-anchor="middle" class="mono">' + p.m.slice(0, 4) + '</text>'; });
-  s += '<path d="' + path("listed") + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/>' +
-       '<path d="' + path("trips") + '" fill="none" stroke="var(--gap)" stroke-width="2"/>';
-  const L = S.at(-1); s += '<circle cx="' + x(n - 1) + '" cy="' + y(L.listed) + '" r="4" fill="var(--accent)"/>' +
-    '<text x="' + (x(n - 1) - 6) + '" y="' + (y(L.listed) - 10) + '" text-anchor="end" class="lab">' + fmt(L.listed) + '</text>';
-  const iv = S.findIndex(p => p.m === "2025-01");
-  if (iv > 0) s += '<line x1="' + x(iv) + '" x2="' + x(iv) + '" y1="' + t + '" y2="' + y(0) + '" stroke="var(--line)" stroke-dasharray="3 3"/>' +
-    '<text x="' + (x(iv) + 5) + '" y="' + (y(0) - 8) + '" class="mono">trip counts redacted</text>';
-  s += '</svg>';
-  $("#series").innerHTML = s;
-}
-
 /* ---------------- boot ---------------- */
-readPal(); legend(); riskChart(); seriesChart(); flagList();
-renderCounty(D.counties.indexOf("Los Angeles"));
+readPal();
+const readHash = () => { try { return decodeURIComponent((location.hash || "").slice(1)); } catch (e) { return ""; } };
+const fromLink = applyToken(readHash());
+$("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
+if (!DIS.some(Boolean)) $("#q-dis").hidden = true;
+if (FUT) $("#m-fut").textContent = "about " + futWhen();
+syncFilterUI(); setLayer(layer); riskChart(); driversChart(); disLayersChart(); findings();
+for (let i = 0; i < T.length; i++) MATCH[i] = passOthers(i) && passRange(i) ? 1 : 0;
+applyFilter();
+renderCounty(pick >= 0 && T[pick][2] >= 0 ? T[pick][2] : Math.max(0, D.counties.indexOf("Los Angeles")));
+if (pick < 0 && !fromLink){ const top = sortedMatches(500)[0]; if (top != null) pick = top; }
+renderTract(); markRow();
 new ResizeObserver(resize).observe(box);
 const repaint = () => { readPal(); draw(); };
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", repaint);
 new MutationObserver(repaint).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
+addEventListener("hashchange", () => { if (applyToken(readHash())){ syncFilterUI(); applyFilter(); renderTract();
+  $("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
+  if (pick >= 0 && T[pick][2] >= 0) renderCounty(T[pick][2]); } });
 </script>

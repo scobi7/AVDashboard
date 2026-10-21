@@ -1,0 +1,195 @@
+{
+ "revision": 3,
+ "reports": 52626,
+ "companies": 39,
+ "reports_freeway": 9825,
+ "reports_surface": 42801,
+ "reference_rate": 0.4955,
+ "rho": 0.58,
+ "rho_estimate": 0.721,
+ "rho_set": [
+  0.1,
+  1.4
+ ],
+ "rho_set_lower_at_grid_edge": true,
+ "beta": 0.5,
+ "beta_range": [
+  0.25,
+  1.0
+ ],
+ "rho_road_length": 7.985,
+ "rho_vehicle_miles": 0.708,
+ "tied_surface": {
+  "stated": 0.1295,
+  "imputed": 0.4499
+ },
+ "tied_freeway": {
+  "stated": 0.5467,
+  "imputed": 0.8483
+ },
+ "shares_mid": {
+  "freeway": {
+   "traffic control": 0.0085,
+   "intersection turn": 0.0014,
+   "pedestrian": 0.001,
+   "cyclist": 0.0033,
+   "lane change or merge": 0.1248,
+   "lane keeping": 0.1428,
+   "other vehicle": 0.4299,
+   "obstruction": 0.0031,
+   "construction or emergency": 0.001,
+   "none stated": 0.2841
+  },
+  "surface": {
+   "traffic control": 0.0459,
+   "intersection turn": 0.0179,
+   "pedestrian": 0.0321,
+   "cyclist": 0.0115,
+   "lane change or merge": 0.0122,
+   "lane keeping": 0.0287,
+   "other vehicle": 0.1785,
+   "obstruction": 0.1413,
+   "construction or emergency": 0.0066,
+   "none stated": 0.5252
+  }
+ },
+ "situation_reports": {
+  "freeway": {
+   "traffic control": 65,
+   "intersection turn": 11,
+   "pedestrian": 8,
+   "cyclist": 25,
+   "lane change or merge": 961,
+   "lane keeping": 1100,
+   "other vehicle": 3311,
+   "obstruction": 24,
+   "construction or emergency": 8,
+   "none stated": 4312
+  },
+  "surface": {
+   "traffic control": 878,
+   "intersection turn": 342,
+   "pedestrian": 614,
+   "cyclist": 221,
+   "lane change or merge": 234,
+   "lane keeping": 550,
+   "other vehicle": 3416,
+   "obstruction": 2704,
+   "construction or emergency": 126,
+   "none stated": 33716
+  }
+ },
+ "validation": {
+  "listed_tracts": 1796,
+  "crashes": 324.0,
+  "spearman_rev3": 0.327,
+  "spearman_per_km_rev3": 0.451,
+  "spearman_rev2": 0.106,
+  "spearman_rev1": -0.199,
+  "spearman_crossings": 0.307,
+  "spearman_crash_model": 0.413,
+  "elasticity_rev3": 3.29,
+  "cpuc_base": 18.4,
+  "cpuc_rev3_offset": 17.5,
+  "map_loco_min_spearman": 0.935,
+  "spearman_per_km_rev2": 0.036,
+  "spearman_per_km_crossings": 0.469,
+  "cell_spearman_per_km": 0.346,
+  "cell_top_tenth_crashes": 0.557,
+  "cell_top_tenth_km": 0.13,
+  "cells": 8089,
+  "police_crashes": 365921,
+  "police_layers": 10,
+  "police_layers_own_up": 7,
+  "police_layers_own_first": 3,
+  "police_layers_not_specific": [
+   "junctions",
+   "shops & services (curbside)",
+   "freeway ramps"
+  ],
+  "period_map_spearman": 0.894,
+  "police_by_layer": {
+   "traffic control": {
+    "crash_type": "at a signal or stop sign (control device present)",
+    "crashes": 63017,
+    "odds_ratio": 1.134,
+    "lo": 1.078,
+    "hi": 1.189,
+    "raises_own": true
+   },
+   "intersection turn": {
+    "crash_type": "broadside, vehicle vs. vehicle",
+    "crashes": 30438,
+    "odds_ratio": 1.0,
+    "lo": 0.979,
+    "hi": 1.023,
+    "raises_own": false
+   },
+   "pedestrian": {
+    "crash_type": "vehicle vs. pedestrian",
+    "crashes": 8045,
+    "odds_ratio": 1.258,
+    "lo": 1.159,
+    "hi": 1.367,
+    "raises_own": true
+   },
+   "cyclist": {
+    "crash_type": "vehicle vs. bicycle",
+    "crashes": 4581,
+    "odds_ratio": 1.089,
+    "lo": 1.04,
+    "hi": 1.128,
+    "raises_own": true
+   },
+   "lane change or merge": {
+    "crash_type": "sideswipe, vehicle vs. vehicle",
+    "crashes": 18749,
+    "odds_ratio": 1.119,
+    "lo": 1.093,
+    "hi": 1.149,
+    "raises_own": true
+   },
+   "obstruction": {
+    "crash_type": "hit a parked vehicle",
+    "crashes": 18910,
+    "odds_ratio": 0.956,
+    "lo": 0.922,
+    "hi": 0.99,
+    "raises_own": false
+   },
+   "lane keeping": {
+    "crash_type": "hit an object or overturned (left the lane)",
+    "crashes": 11196,
+    "odds_ratio": 1.168,
+    "lo": 1.131,
+    "hi": 1.204,
+    "raises_own": true
+   },
+   "lane change or merge (freeway)": {
+    "crash_type": "freeway sideswipe",
+    "crashes": 40706,
+    "odds_ratio": 1.024,
+    "lo": 0.997,
+    "hi": 1.052,
+    "raises_own": false
+   },
+   "lane keeping (freeway)": {
+    "crash_type": "freeway: hit an object or overturned",
+    "crashes": 22113,
+    "odds_ratio": 1.238,
+    "lo": 1.194,
+    "hi": 1.294,
+    "raises_own": true
+   },
+   "other vehicle (freeway)": {
+    "crash_type": "freeway rear-end",
+    "crashes": 69627,
+    "odds_ratio": 1.172,
+    "lo": 1.141,
+    "hi": 1.21,
+    "raises_own": true
+   }
+  },
+  "text": "Checked against an independent record: in the 1,796 tracts AVs drove, the map ranks 324 DMV-reported autonomous-mode collisions (2019\u201324) per km of road within county at Spearman 0.45 (the road-length version it replaces: 0.04; crossing density alone: 0.47). At the 500 m cells it predicts, the riskiest tenth holds 56% of the crashes on 13% of the road km. No collision data were used to build it. Against 366k police-reported crashes (2022\u201324), 7 of the 10 specialised layers raise the share of their own kind of crash (not: junctions, shops & services (curbside), freeway ramps)."
+ }
+}
