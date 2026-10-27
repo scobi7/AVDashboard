@@ -675,7 +675,7 @@ function styleOf(i){
   if (col == null) return [pal["--other"], .35, 0];
   return [col, 1, 0];
 }
-let snap = null, snapValid = false, proj = [], hoverI = -1, lastView = "", settleT = 0, moving = false;
+let hiSet = null, snap = null, snapValid = false, proj = [], hoverI = -1, lastView = "", settleT = 0, moving = false;
 function drawOutline(){
   if (!OUTLINE.length) return;
   ctx.globalAlpha = Math.max(.25, Math.min(.6, .6 - (view.z - 1) * .03));
@@ -791,7 +791,7 @@ function drawNow(){
       if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
       const [col, a, c] = styleOf(i);
       if (P != null && c !== P) continue;
-      ctx.globalAlpha = MATCH[i] ? a : Math.min(a, .1);
+      ctx.globalAlpha = (MATCH[i] ? a : Math.min(a, .1)) * (hiSet && !hiSet.has(i) ? .3 : 1);
       ctx.fillStyle = col;
       // every tract fills as its real shape (dots only for tracts too small to resolve)
       const isPoly = tractPath(i); ctx.fill();
@@ -811,6 +811,15 @@ function drawNow(){
     ctx.globalAlpha = 1; ctx.lineWidth = w; ctx.strokeStyle = statusPal()[k >> 1]; ctx.stroke();
   });
   if (!moving) drawTractGrid();
+  if (hiSet){ // a searched city or county: everything else dims, its own tracts get a dark outline
+    ctx.globalAlpha = 1; ctx.strokeStyle = pal["--ink"]; ctx.lineWidth = 2; ctx.beginPath();
+    for (const i of hiSet){
+      const [x, y] = proj[i]; if (x < -80 || y < -80 || x > W + 80 || y > H + 80) continue;
+      if (polyShown(i)){ TP[i].forEach(([lon, lat], j) => { const [a, c] = px(lon, lat); j ? ctx.lineTo(a, c) : ctx.moveTo(a, c); }); ctx.closePath(); }
+      else { const r = dotR() + 1; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); }
+    }
+    ctx.stroke();
+  }
   for (let i = 0; i < T.length; i++){ const [x, y] = proj[i]; if (MATCH[i] && x >= -8 && y >= -8 && x <= W + 8 && y <= H + 8) visible++; }
   ctx.globalAlpha = 1;
   // outline the selected county's tracts faintly (dot mode only - real polygon borders already show this at high zoom)
@@ -897,7 +906,7 @@ document.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click
 
 /* ---------------- map interaction ---------------- */
 function go(p){ const [lon, lat, z] = PRESET[p]; view = { lon, lat, z }; draw(); }
-$("#preset").addEventListener("change", e => go(e.target.value));
+$("#preset").addEventListener("change", e => { hiSet = null; go(e.target.value); });
 function fitTo(idx){
   if (!idx.length || !W) return;
   let a = 180, b = -180, c = 90, d = -90;
@@ -984,11 +993,12 @@ function hover(x, y){
   if (tip.dataset.k === tk && !tip.hidden){ placeTip(x, y); return; } // same tract: just move the tooltip
   tip.dataset.k = tk;
   const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–", L = LAYERS[layer], tf = topFactor(i), o = OBS[i];
+  const noRecord = t[10] === 3 || t[10] === 2; // not authorised, or authorised with nothing like it listed: the crash model only extrapolates there
   const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
   tip.innerHTML = '<b>' + esc(t[17] || c) + ' · tract ' + t[9].slice(5) + '</b>' + statusTag(visClass(t)) +
     (DIS[i] ? row("Disengagement / mile", relText(DIS[i][0], null, null, "average")) : "") +
-    row("Crash risk", t[20] == null ? "–" : t[20] + " of 100") +
-    (tf ? row(tf.v > 0 ? "Mainly raised by" : "Mainly lowered by", phrase(tf) + " " + xf(tf.v)) : "") +
+    (noRecord ? "" : row("Crash risk", t[20] == null ? "–" : t[20] + " of 100")) +
+    (tf && !noRecord ? row(tf.v > 0 ? "Mainly raised by" : "Mainly lowered by", phrase(tf) + " " + xf(tf.v)) : "") +
     (L.type === "ramp" && !layer.startsWith("risk") && layer !== "obs" && layer !== "dis" ? row(esc(L.name), L.val(i) == null ? "–" : L.f(L.val(i))) : "") +
     (o ? row("Collisions 2025–26", o[0]) : "") +
     row("Residents", fmt(t[3]));
@@ -1141,16 +1151,18 @@ $("#qlist").innerHTML = D.counties.map(c => '<option value="' + c + ' County">')
 const centre = rows => ({ lon:rows.reduce((a, t) => a + t[0], 0) / rows.length, lat:rows.reduce((a, t) => a + t[1], 0) / rows.length });
 $("#find").addEventListener("submit", e => {
   e.preventDefault();
-  const q = $("#q").value.trim(); if (!q) return;
+  const q = $("#q").value.trim(); if (!q){ hiSet = null; draw(); return; }
+  hiSet = null;
   const ql = q.toLowerCase(), isCounty = / county$/.test(ql);
   const ci = D.counties.findIndex(c => c.toLowerCase() === ql.replace(/ county$/, ""));
   const city = isCounty ? null : CITIES.find(c => c.toLowerCase() === ql);
   if (city){
     const rows = T.filter(t => t[17] === city);
+    hiSet = new Set(T.map((t, i) => t[17] === city ? i : -1).filter(i => i >= 0));
     view = { ...centre(rows), z:Math.max(6, Math.min(20, 40 / Math.sqrt(rows.length))) };
     renderCounty(rows[0][2]); return;
   }
-  if (ci >= 0){ view = { ...centre(T.filter(t => t[2] === ci)), z:5 }; renderCounty(ci); return; }
+  if (ci >= 0){ hiSet = new Set(T.map((t, i) => t[2] === ci ? i : -1).filter(i => i >= 0)); view = { ...centre(T.filter(t => t[2] === ci)), z:5 }; renderCounty(ci); return; }
   const d = q.replace(/\D/g, "");
   let i = byGeo.get(d.padStart(11, "0"));
   if (i == null && d.length >= 4) i = T.findIndex(t => t[9].endsWith(d.padStart(6, "0")));
