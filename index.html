@@ -416,6 +416,7 @@ const METRO_LABELS = [{ name:"Los Angeles", lon:-118.3, lat:34.02 }, { name:"San
 METRO_LABELS.forEach(m => $("#metrolabels").appendChild(m.el));
 const STATUS = ["Covered", "Similarly tested", "Untested", "Not authorised"];
 const STATUS_VAR = ["var(--accent)", "var(--watch)", "var(--gap)", "var(--ink2)"];
+const statusPal = () => [pal["--accent"], pal["--watch"], pal["--gap"], pal["--ink2"]];
 const statusTag = s => '<span class="statustag" style="color:' + STATUS_VAR[s] + '"><span class="dot"></span>' + STATUS[s] + '</span>';
 const STATUS_TXT = [
   "Listed in a deployment filing: authorised service area. Listing does not mean every street has been driven.",
@@ -491,7 +492,7 @@ const LAYERS = {
   dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr, ring:true,
            desc:"<b>Disengagement risk per mile:</b> how often a supervised test vehicle needed a human to take over, per mile on this tract's roads, against the California average (1×). Built from DMV disengagement reports and OpenStreetMap road features — no crash data used.",
            data:"Data: CA DMV disengagement and mileage reports 2020–24 · OpenStreetMap · Caltrans traffic counts (notebook 17)" },
-  risk:  { group:"Crash risk", name:"Crash risk (main model)", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true,
+  risk:  { group:"Crash risk", name:"Crash risk (main model)", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true, ring:true,
            desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract. Faded tracts lie outside the conditions driven so far.",
            data:"Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING },
   risk2: { group:"Crash risk", name:"Second model (DMV 2019–24)", type:"ramp", val:i => T[i][23], stops:PCT_STOPS, f:ord,
@@ -704,7 +705,7 @@ function drawNow(){
       ctx.fillStyle = col;
       const isPoly = tractPath(i); ctx.fill();
       if (isPoly){ ctx.lineWidth = .7; ctx.strokeStyle = pal["--surface"]; ctx.stroke(); }
-      if (L.ring && T[i][8] && MATCH[i]){ ctx.globalAlpha = isPoly ? .55 : 1; ctx.lineWidth = isPoly ? .9 : Math.max(.8, dotR() * .38); ctx.strokeStyle = pal["--ink"]; ctx.stroke(); }
+      if (L.ring && MATCH[i]){ ctx.globalAlpha = isPoly ? .75 : 1; ctx.lineWidth = isPoly ? 1.1 : Math.max(.8, dotR() * .38); ctx.strokeStyle = statusPal()[T[i][10]]; ctx.stroke(); }
     }
   }
   for (let i = 0; i < T.length; i++){ const [x, y] = proj[i]; if (MATCH[i] && x >= -8 && y >= -8 && x <= W + 8 && y <= H + 8) visible++; }
@@ -764,7 +765,7 @@ function legend(){
   } else {
     const [, nums] = rampKey(L);
     const extra = (L.fade ? '<span class="key"><i style="background:var(--r2);opacity:.3"></i>Faded: extrapolated</span>' : '') +
-      (L.ring ? '<span class="key"><i style="background:transparent;border:2px solid var(--ink)"></i>Ringed: in a deployment filing</span>' : '') +
+      (L.ring ? STATUS.map((s, k) => '<span class="key"><i style="background:transparent;border:2px solid ' + STATUS_VAR[k] + '"></i>' + s + '</span>').join("") : '') +
       (L.nullText ? '<span class="key"><i style="background:var(--other);opacity:.35"></i>' + L.nullText + '</span>' : '');
     key.innerHTML = '<span class="title">' + esc(L.name) + '</span><span style="display:flex;height:10px;border-radius:3px;overflow:hidden">' +
       [0, 1, 2, 3, 4].map(i => '<span style="flex:1;background:var(--r' + i + ')"></span>').join("") + '</span>' +
