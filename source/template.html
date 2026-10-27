@@ -496,12 +496,9 @@ const LAYERS = {
   dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr, ring:true,
            desc:"<b>Disengagement risk per mile:</b> how often a supervised test vehicle needed a human to take over, per mile on this tract's roads, against the California average (1×). Built from DMV disengagement reports and OpenStreetMap road features — no crash data used.",
            data:"Data: CA DMV disengagement and mileage reports 2020–24 · OpenStreetMap · Caltrans traffic counts (notebook 17)" },
-  risk:  { group:"Crash risk", name:"Crash risk (main model)", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true, ring:true,
+  risk:  { group:"Crash risk", name:"Crash risk", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true, ring:true,
            desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract. Faded tracts lie outside the conditions driven so far.",
            data:"Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING },
-  risk2: { group:"Crash risk", name:"Second model (DMV 2019–24)", type:"ramp", val:i => T[i][23], stops:PCT_STOPS, f:ord,
-           desc:"<b>Second model:</b> the same features, trained on DMV-reported autonomous-mode crashes 2019–24 from every company. Where the two maps differ, the models weigh features differently (see “What drives the crash-risk map”).",
-           data:"Data: DMV collision reports 2019–24 via Xu, Jiao & Chen (2025), re-geocoded against OpenStreetMap" },
   unc:   { group:"Crash risk", name:"How uncertain is the ranking", type:"ramp", val:i => T[i][21] == null ? null : T[i][22] - T[i][21], f:v => Math.round(v) + " pts",
            desc:"<b>How uncertain is the ranking:</b> how much a tract's rank could shift if the model were re-tested on different neighbourhoods. Darker tracts are less certain.",
            data:"Data: the main model re-tested 200 times on resampled neighbourhoods (notebook 06)" },
@@ -905,9 +902,8 @@ function disSection(i){
   }
   return h;
 }
-const LOGMAX = Math.log(10);
-function barRow(e, base){
-  const w = v => Math.min(Math.abs(v), LOGMAX) / LOGMAX * 50, pos = v => 50 + Math.sign(v) * w(v);
+function barRow(e, base, capVal){
+  const w = v => v === 0 ? 0 : Math.max(4, Math.sqrt(Math.min(Math.abs(v), capVal) / capVal) * 48), pos = v => 50 + Math.sign(v) * w(v);
   const l = e.v >= 0 ? 50 : pos(e.v), col = e.v >= 0 ? "var(--r3)" : "var(--accent)";
   const a = Math.min(pos(e.lo), pos(e.hi)), b = Math.max(pos(e.lo), pos(e.hi));
   const detail = '<div class="wdetail" hidden id="wd' + base + e.k + '"><div class="dh"><span>Feature</span><span>This tract</span><span>' + (base === "p" ? "Pinned" : "Typical") + '</span><span>Factor</span></div>' +
@@ -921,11 +917,10 @@ function barRow(e, base){
 }
 function pctAxis(t){
   const X = p => 8 + (p - 1) / 99 * 284;
-  let s = '<svg viewBox="0 0 300 44" role="img" aria-label="Crash-risk percentile ' + t[20] + ', 90% range ' + t[21] + ' to ' + t[22] + (t[23] != null ? ', second model ' + t[23] : '') + '">';
+  let s = '<svg viewBox="0 0 300 44" role="img" aria-label="Crash-risk percentile ' + t[20] + ', 90% range ' + t[21] + ' to ' + t[22] + '">';
   [1, 25, 50, 75, 100].forEach(p => s += '<line x1="' + X(p) + '" x2="' + X(p) + '" y1="20" y2="25" stroke="var(--line)"/><text x="' + X(p) + '" y="38" text-anchor="middle">' + p + '</text>');
   s += '<line x1="' + X(1) + '" x2="' + X(100) + '" y1="20" y2="20" stroke="var(--line)" stroke-width="2"/>';
   if (t[21] != null) s += '<rect x="' + X(t[21]) + '" y="14" width="' + Math.max(2, X(t[22]) - X(t[21])) + '" height="12" rx="3" fill="var(--r1)" opacity=".8"/>';
-  if (t[23] != null) s += '<path d="M' + X(t[23]) + ' 13 l5 6 -5 6 -5 -6z" fill="var(--surface)" stroke="var(--ink2)" stroke-width="1.5"/>';
   s += '<circle cx="' + X(t[20]) + '" cy="20" r="6" fill="' + (rampColor(t[20], PCT_STOPS) || pal["--r2"]) + '" stroke="var(--ink)" stroke-width="1.5"/>';
   return s + '</svg>';
 }
@@ -968,17 +963,18 @@ function renderTract(){
     '<div class="chips">' + statusTag(s) + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
     (layer === "dis" ? disSection(i) : '');
   if (layer === "risk"){
-    h += (DIS[i] ? '<h4 class="tc-sub">Crash risk · a second, independent model</h4>' : '') + '<p class="lead">' + summaryText(i) + '</p>';
+    h += '<h4 class="tc-sub">Crash risk</h4><p class="lead">' + summaryText(i) + '</p>';
     if (t[20] != null){
-      h += '<div class="sec"><div class="pctaxis">' + pctAxis(t) + '</div><div class="axkey"><span>● main model</span><span style="color:var(--ink2)"><i style="display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--r1);vertical-align:middle"></i> 90% range</span>' +
-        (t[23] != null ? '<span>◇ second model (DMV 2019–24): ' + ord(t[23]) + '</span>' : '') + '</div></div>';
+      h += '<div class="sec"><div class="pctaxis">' + pctAxis(t) + '</div><div class="axkey"><span style="color:var(--ink2)"><i style="display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--r1);vertical-align:middle"></i> 90% range</span></div></div>';
     }
     if (E){
-      h += '<div class="sec"><h4>Why this score</h4><div class="why">' + E.map(e => barRow(e, "t")).join("") + '</div></div>';
+      const capVal = Math.max(.05, ...E.map(e => Math.abs(e.v)));
+      h += '<div class="sec"><h4>Why this score</h4><div class="why">' + E.map(e => barRow(e, "t", capVal)).join("") + '</div></div>';
       if (pin >= 0 && pin !== i && FEAT[pin]){
         const Ec = explain(i, pin), tot = Ec.reduce((a, e) => a + e.v, 0), [lo, hi] = totalRange(i, pin), p = T[pin];
+        const capValP = Math.max(.05, ...Ec.map(e => Math.abs(e.v)));
         h += '<div class="sec"><h4>Compared with the pinned tract</h4><p class="hint">Tract <button type="button" class="linkbtn" data-goto="' + pin + '">' + p[9] + '</button> (rank ' + p[20] + ' of 100). This tract expects <b>' + xf(tot) + '</b> its collisions (likely range ' + xf(lo) + '–' + xf(hi) + ')' +
-          (lo > 0 ? ': clearly higher.' : hi < 0 ? ': clearly lower.' : ': the re-tests do not agree on which is higher.') + '</p><div class="why">' + Ec.map(e => barRow(e, "p")).join("") + '</div>' +
+          (lo > 0 ? ': clearly higher.' : hi < 0 ? ': clearly lower.' : ': the re-tests do not agree on which is higher.') + '</p><div class="why">' + Ec.map(e => barRow(e, "p", capValP)).join("") + '</div>' +
           '<span><button type="button" class="ibtn" id="unpinbtn">Unpin</button></span></div>';
       }
     }
@@ -1037,7 +1033,6 @@ const COLS = [
   { k:"disr", label:"Likely range", title:"The range this estimate could fall in, from simulating the uncertainty behind it 200 times", v:i => DIS[i] ? DIS[i][2] - DIS[i][1] : -1, td:i => DIS[i] ? DIS[i][1].toFixed(2) + "–" + DIS[i][2].toFixed(2) : "–", cls:"rng" },
   { k:"risk", label:"Crash risk", title:"Rank out of 100 tracts on this map, by expected collisions at a standard service level", v:i => T[i][20], td:i => T[i][20] },
   { k:"rng", label:"Likely range", title:"How much the ranking could move if the model were retrained on different neighbourhoods", v:i => T[i][22] - T[i][21], td:i => T[i][21] + "–" + T[i][22], cls:"rng" },
-  { k:"risk2", label:"Second model", title:"Rank (of 100) from a second, independent model, trained on DMV crash reports 2019–24 from every company", v:i => T[i][23] ?? -1, td:i => T[i][23] ?? "–" },
   { k:"obs", label:"Collisions 25–26", title:"Collisions reported to the CPUC 2025Q1–2026Q2 (see 'vs expected' for how that compares to the model)", v:i => OBS[i] ? OBS[i][0] : -1, td:i => OBS[i] ? OBS[i][0] : "–" },
   { k:"exc", label:"vs expected", title:"Collisions vs. the model's expectation, adjusted so one unlucky quarter can't look like a hot spot; arrow means consistently above or below", v:i => OBS[i] ? OBS[i][2] : -1, td:i => OBS[i] ? OBS[i][2].toFixed(2) + "×" + (OBS[i][3] > 1 ? " ▲" : OBS[i][4] < 1 ? " ▼" : "") : "–" },
   { k:"status", label:"Status", v:i => T[i][10], td:i => STATUS[T[i][10]] },
