@@ -53,17 +53,20 @@ p{margin:0}
 .moredetail .inner{padding-top:12px}
 .lede{color:var(--ink2);max-width:68ch;font-size:15.5px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.headrow{display:flex;gap:28px;align-items:flex-start}
+.headrow header{flex:1;min-width:0}
 header{display:grid;gap:10px}
 .sign{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--ink2)}
 .sign i{display:inline-block;width:22px;height:14px;border-radius:3px;background:var(--accent);position:relative}
 .sign i::after{content:"";position:absolute;left:4px;right:4px;top:6px;height:2px;background:var(--surface);border-radius:1px}
 
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:4px;align-content:start}
-.stat .big{font-family:var(--mono);font-size:clamp(26px,3.4vw,34px);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
-.stat .big small{display:block;font-size:13px;line-height:1.3;color:var(--ink2);font-weight:400;margin-top:3px;font-family:var(--display)}
-.stat p{color:var(--ink2);font-size:13.5px}
+.stats{display:flex;flex-direction:row;gap:10px;width:420px;flex-shrink:0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:3px;align-content:start;flex:1;min-width:0}
+.stat .big{font-family:var(--mono);font-size:clamp(19px,2.2vw,24px);font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat .big small{display:block;font-size:11.5px;line-height:1.3;color:var(--ink2);font-weight:400;margin-top:3px;font-family:var(--display)}
+.stat p{color:var(--ink2);font-size:12px}
+.stat .eyebrow{font-size:10.5px}
 .stat.gap .big{color:var(--gap)}
 .stat.cov .big{color:var(--accent)}
 
@@ -100,7 +103,7 @@ svg.hist{display:block;width:200px;height:42px;cursor:crosshair;touch-action:non
 canvas#map{position:absolute;inset:0;width:100%;height:100%;cursor:grab;display:block}
 canvas#map.dragging{cursor:grabbing}
 .tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);
-  padding:8px 10px;font-size:12.5px;min-width:200px;max-width:260px;z-index:3;display:grid;gap:2px}
+  padding:8px 10px;font-size:12.5px;min-width:260px;max-width:380px;z-index:3;display:grid;gap:2px}
 .tip b{font-size:13px}
 .tip .row{display:flex;justify-content:space-between;gap:12px;color:var(--ink2)}
 .tip .row span:last-child{color:var(--ink);font-family:var(--mono);text-align:right}
@@ -129,6 +132,8 @@ canvas#map.dragging{cursor:grabbing}
 .chip.flag{background:var(--gap-soft);color:var(--gap)}
 .chip.watch{background:var(--bg);color:var(--watch);border:1px solid var(--watch)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+.statustag{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;width:max-content}
+.statustag .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 6px 1px currentColor;flex-shrink:0}
 button.chip{font:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink2)}
 button.chip[aria-pressed="true"]{border-color:currentColor}
 button.chip[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
@@ -237,10 +242,11 @@ footer a{color:var(--ink2)}
   .mapcol{border-right:0;border-bottom:1px solid var(--line)}
   .two,.drivers{grid-template-columns:minmax(0,1fr)}
   .method{grid-template-columns:1fr}
-  .stats,.fgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .headrow{flex-direction:column}
+  .stats{width:auto;flex-direction:row}
 }
 @media (max-width:640px){
-  .stats,.fgrid{grid-template-columns:1fr}
+  .stats{flex-direction:column}
   .seg{flex-wrap:wrap}
   .find{flex:1 1 100%}
   .find input{flex:1;width:auto}
@@ -252,29 +258,20 @@ footer a{color:var(--ink2)}
 </style>
 
 <div class="wrap">
+  <section class="headrow">
   <header>
     <span class="sign"><i></i>AV Validation Gap · California</span>
     <h1>Where would a driverless car most need a human to take over?</h1>
     <p class="lede" id="lede">When a self-driving test car meets something it can't handle, a human takes over.
-      This map turns California's disengagement reports into a <b>disengagement risk per mile</b> for every census tract in San Francisco and Los Angeles.
-      Scores are relative, not a safety rating — click any tract to see why.</p>
+      This map turns California's disengagement reports into a <b>disengagement risk per mile</b> for every census tract in San Francisco and Los Angeles.</p>
   </header>
 
-  <section class="stats" aria-label="Headline figures">
+  <div class="stats" aria-label="Headline figures">
     <div class="stat cov"><div class="eyebrow">Disengagement reports behind the map</div>
       <div class="big" id="s-listed">–</div><p id="s-listed-p"></p></div>
-    <div class="stat"><div class="eyebrow">Takeover risk per mile</div>
-      <div class="big" id="s-check">–</div><p id="s-check-p"></p></div>
-    <div class="stat"><div class="eyebrow">Two crash records agree</div>
-      <div class="big">0.49 <small>match score, cross-checked</small></div>
-      <p>Two independent crash records — different regulators, years, operators — rank the same tracts similarly.</p></div>
     <div class="stat gap"><div class="eyebrow">Beyond this map</div>
       <div class="big" id="s-gap">–</div><p id="s-gap-p"></p></div>
-  </section>
-
-  <section class="findings" aria-label="What the map shows">
-    <div><div class="eyebrow">Start here</div><h2>What this map shows</h2></div>
-    <div class="fgrid" id="findings"></div>
+  </div>
   </section>
 
   <section class="panel mapgrid" aria-label="Crash-risk map" id="mapsec">
@@ -283,12 +280,6 @@ footer a{color:var(--ink2)}
         <div class="seg" role="group" aria-label="Quick layers">
           <button id="q-dis" data-layer="dis" aria-pressed="true">Disengagement risk</button>
           <button id="q-risk" data-layer="risk" aria-pressed="false">Crash risk</button>
-          <button id="q-stat" data-layer="stat" aria-pressed="false">Validation status</button>
-        </div>
-        <select id="layer" aria-label="Colour tracts by"></select>
-        <div class="seg" id="viewmode" role="group" aria-label="Disengagement risk resolution" hidden>
-          <button type="button" id="vm-tract" data-view="tract" aria-pressed="true">Tract</button>
-          <button type="button" id="vm-cell" data-view="cell" aria-pressed="false">Grid cell</button>
         </div>
         <span class="spacer"></span>
         <form id="find" class="find" role="search">
@@ -312,12 +303,7 @@ footer a{color:var(--ink2)}
           <input class="rangein" id="fhi" type="number" min="1" max="100" value="100" aria-label="Highest crash-risk percentile">
         </div>
         <div class="fgroup chips" id="fstatus" role="group" aria-label="Validation status"></div>
-        <select id="fcounty" aria-label="County"></select>
-        <label class="chk"><input type="checkbox" id="freliable" checked> Hide extrapolated</label>
-        <span class="fcount" id="fcount"></span>
         <span class="spacer"></span>
-        <button class="btn" id="freset" type="button">Reset</button>
-        <button class="btn" id="copylink" type="button">Copy link to this view</button>
       </div>
       <p class="layerdesc" id="layerdesc"></p>
       <div class="mapbox" id="mapbox">
@@ -339,88 +325,11 @@ footer a{color:var(--ink2)}
     </aside>
   </section>
 
-  <section class="panel card" aria-label="Ranked tracts">
-    <div class="toolbar" style="padding:0;border:0;align-items:flex-end">
-      <div>
-        <div class="eyebrow">Disengagement risk and crash risk · follows the map's filters</div>
-        <h2>Tracts ranked</h2>
-      </div>
-      <span class="spacer"></span>
-      <button id="flagcsv" class="btn" type="button">Download CSV</button>
-      <button id="flaggeo" class="btn" type="button" title="Tract centroids with the same fields, for ArcGIS or QGIS">GeoJSON</button>
-    </div>
-    <p class="sub" id="flag-sub"></p>
-    <div class="tablewrap"><table class="cmp flags" id="flags">
-      <thead><tr id="flaghead"></tr></thead>
-      <tbody></tbody></table></div>
-  </section>
-
-  <section class="panel drivers" aria-label="What drives disengagement risk" id="dissec" style="grid-template-columns:minmax(0,1fr)">
-    <div style="display:grid;gap:10px;align-content:start;min-width:0">
-      <div class="eyebrow">Disengagement risk · the specialised layers</div>
-      <h2>Each road situation is its own model, checked against police-reported crashes</h2>
-      <p class="sub" style="color:var(--ink2);font-size:13.5px">One row per road situation. Right of the line means that situation is checked against real police-crash data and holds up.
-        <button type="button" class="infoicon" data-tip="One row per layer: the road situation DMV reports name, the mapped feature its rate scales with, and how many reports name it. The dot checks it against real police crash records (CCRS 2022–24, four counties): does that kind of crash happen more often in places with more of this feature? Right of the line (1×) means yes, with its likely range." aria-label="More about how this chart is built">i</button></p>
-      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Raises its own crash type</span>
-        <span class="key"><i style="background:var(--muted)"></i>Not specific</span></div>
-      <div class="chart" id="dislayers"></div>
-    </div>
-  </section>
-
-  <section class="panel drivers" aria-label="What drives the crash-risk map" style="grid-template-columns:minmax(0,1fr)">
-    <div style="display:grid;gap:10px;align-content:start;min-width:0">
-      <div class="eyebrow">Crash-risk model · what it responds to</div>
-      <h2>What drives the crash-risk map</h2>
-      <p class="sub" style="color:var(--ink2);font-size:13.5px">Each row is a feature of a tract; longer bars move the crash-risk score more.
-        <button type="button" class="infoicon" data-tip="Each row: how much expected collisions change moving from a low tract (bottom quarter) to a high one (top quarter) for that feature, among tracts on this map. Bar: likely range from re-testing the model 200 times." aria-label="More about how this chart is built">i</button></p>
-      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Main model (CPUC 2025–26)</span>
-        <span class="key"><i style="width:18px;height:6px;border-radius:3px;background:var(--accent);opacity:.35"></i>90% range</span>
-        <span class="key"><i style="border-radius:1px;transform:rotate(45deg);width:8px;height:8px;border:1.5px solid var(--ink2);background:transparent"></i>Second model (DMV 2019–24)</span></div>
-      <div class="chart" id="drivers"></div>
-    </div>
-  </section>
-
-  <section class="two" style="grid-template-columns:minmax(0,1fr)">
-    <div class="panel card">
-      <div class="eyebrow">Risk layer · model output</div>
-      <h2>Expected miles per disengagement by company, the year after the record ends</h2>
-      <p class="sub">Companies with at least one 2024 disengagement and 1,000+ miles. Further right is better.
-        <button type="button" class="infoicon" data-tip="Empirical-Bayes rate from CA DMV filings 2020–2024: each company's recent miles, weighed against the fleet. The bar is the 90% range, and it includes the 2–3× year-to-year swings companies actually show." aria-label="More about how this chart is built">i</button></p>
-      <div class="ckey"><span class="key"><i style="background:var(--accent)"></i>Model estimate</span>
-        <span class="key"><i style="background:transparent;border:2px solid var(--ink2)"></i>2024 filed rate</span>
-        <span class="key"><i style="width:18px;height:4px;border-radius:2px;background:var(--r1)"></i>90% range</span></div>
-      <div class="chart" id="risk"></div>
-    </div>
-  </section>
-
-  <section class="panel card" aria-label="How to read this">
-    <details class="moredetail"><summary>Methodology notes and limits</summary>
-    <div class="inner method">
-    <div><h3>“Listed” is an upper bound</h3>
-      <p>A tract counts as covered when an operator lists it in its CPUC monthly filing. Before March 2024, 95–98% of the ~250 listed San Francisco tracts had trips.
-        When the footprint expanded to 1,498 tracts, only 13–40% had any trip (Mar–Dec 2024): newly authorised areas are listed long before they are driven. Blue means authorised service area. It does not mean tested.</p></div>
-    <div><h3>No record is not the same as dangerous</h3>
-      <p>An Untested status means the public has no driverless safety evidence from places like this one: it is a statement about evidence.
-        San Francisco's transportation authority has proposed opening each new geography to an operator only after it shows a performance record (SFCTA permitting framework, 2025); Untested marks where no public record of that kind exists yet.
-        Place risk comes from a Waymo collision model using census and OpenStreetMap road features (2025–26; held-out deviance −39 to −44% on unseen neighbourhoods; city ranking matches NHTSA crash reports, 0.74 of 1.00; and, out of time, it ranks where 2019–24 DMV-reported AV crashes happened, 0.39 of 1.00 within county, including a different operator's). Read it as a ranking with a 90% range, and rank within a county: across metros the level can be off by about ×/÷2.6.
-        It is not a count forecast. The model counts all reported collisions,
-        whoever was at fault, so it measures exposure to conflict and assigns no blame. Read by local LLMs, the crash reports say another road user moved into the AV in 77–93% of autonomous-mode crashes.</p></div>
-    <div><h3>Disengagement risk is a relative index from a closed record</h3>
-      <p>California replaced disengagement reports with new metrics from 1 July 2026, so the 2020–2024 reports are a closed record.
-        The disengagement-risk map and the company chart describe the era of supervised testing: read them as where test vehicles needed a human most, relative to an average California road mile, not as a current safety rating or a forecast of takeovers.
-        Every value carries a 90% range from simulating the uncertainty in the company estimates, the freeway rate, how unnamed reports are treated and how strongly each feature scales.</p></div>
-    <div><h3>Synthetic data cannot fill the gap</h3>
-      <p>With no new reports coming, we tested synthetic data made with 2025–26 methods (notebooks 18–21). Simulated futures show that a newly served county's own crash record needs <span id="m-fut">about two years</span> to test this map.
-        Synthetic tract tables from five modern generators never stood in for real tracts: the best (ForestFlow) added about 1 point of held-out fit to the crash model, with every 90% interval including zero, and copula or ARF tables cost it 8.6–10.4 points.
-        Synthetic rows labelled by the real-data model lifted a weaker model (a neural network, 0.27 to 0.53) only up to the model itself (0.55). The map therefore uses real records only.</p></div>
-    </div></details>
-  </section>
 
   <footer>
     <span>Sources: CPUC AV deployment quarterly filings (Mar 2022 – <span id="asof"></span>); CPUC decision of 14 Aug 2026 (18 counties);
-      CA DMV disengagement and mileage reports 2020–2024 (incl. first-time filers); DMV collision reports 2019–2024 via Xu, Jiao &amp; Chen (2025), re-geocoded; NHTSA SGO 2021-01; ACS 2019–2023 5-year estimates; Census 2023 TIGER/gazetteer; Caltrans traffic counts (AADT). Crash and disengagement narratives read by Qwen3.5-9B and Gemma 4 12B, run locally.</span>
+      CA DMV disengagement and mileage reports 2020–2024 (incl. first-time filers); DMV collision reports 2019–2024 via Xu, Jiao &amp; Chen (2025), re-geocoded; NHTSA SGO 2021-01; ACS 2019–2023 5-year estimates; Census 2023 TIGER/gazetteer; Caltrans traffic counts (AADT).</span>
     <span>Road features: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, available under the Open Database License (ODbL), via Geofabrik.</span>
-    <span>UC Berkeley capstone · AV Validation Gap team · MVP build from notebooks 02–21 (synthetic-data tests: notebooks 18–21).</span>
   </footer>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -507,6 +416,7 @@ const METRO_LABELS = [{ name:"Los Angeles", lon:-118.3, lat:34.02 }, { name:"San
 METRO_LABELS.forEach(m => $("#metrolabels").appendChild(m.el));
 const STATUS = ["Covered", "Similarly tested", "Untested", "Not authorised"];
 const STATUS_VAR = ["var(--accent)", "var(--watch)", "var(--gap)", "var(--ink2)"];
+const statusTag = s => '<span class="statustag" style="color:' + STATUS_VAR[s] + '"><span class="dot"></span>' + STATUS[s] + '</span>';
 const STATUS_TXT = [
   "Listed in a deployment filing: authorised service area. Listing does not mean every street has been driven.",
   "Authorised and not listed, but places with a similar built environment have been listed.",
@@ -550,7 +460,7 @@ function summaryText(i){
   const big = E.filter(e => e.stable && Math.abs(e.v) >= Math.log(1.25));
   const up = big.filter(e => e.v > 0).sort((a, b) => b.v - a.v).slice(0, 2), dn = big.filter(e => e.v < 0).sort((a, b) => a.v - b.v).slice(0, 2);
   const ph = e => "its " + FAMNOUN[e.name] + " (" + phrase(e) + ", " + xf(e.v) + ")";
-  let s = "<b>" + relText(t[11], t[15], t[16], "a typical listed tract") + "</b>. ";
+  let s = "Riskier than <b>" + t[20] + " of 100</b> tracts on this map (likely range " + t[21] + "–" + t[22] + " of 100). ";
   if (up.length) s += "Raised most by " + listAnd(up.map(ph)) + (dn.length ? "; lowered by " + listAnd(dn.map(ph)) : "") + ".";
   else if (dn.length) s += "Lowered by " + listAnd(dn.map(ph)) + ".";
   else s += "No factor moves it far from a typical listed tract.";
@@ -563,17 +473,13 @@ function summaryText(i){
   const served = T.filter(t => t[8]).length, X = D.context, nd = DIS.filter(Boolean).length;
   if (DM.reports){
     $("#s-listed").innerHTML = fmt(DM.reports) + ' <small>' + DM.companies + ' companies, 2020–24</small>';
-    $("#s-listed-p").textContent = fmt(nd) + " tracts (" + X.scope + ") get a risk per mile; " + fmt(served) + " are in Waymo's current service area.";
-    $("#s-check").innerHTML = DM.rhoCrashPerKm.toFixed(2) + ' <small>of 1.00, vs. real crashes</small>';
-    $("#s-check-p").textContent = "Built on disengagement reports and road features. Matches where real AV crashes happened at " + DM.rhoCrashPerKm.toFixed(2) + " of 1.00.";
+    $("#s-listed-p").textContent = fmt(nd) + " tracts";
   } else {
     $("#s-listed").innerHTML = fmt(T.length) + ' <small>' + X.scope + '</small>';
     $("#s-listed-p").textContent = "Each has a crash-risk percentile with a 90% range. " + fmt(served) + " are in Waymo's current service area (CPUC filing, " + D.asOf + "); the rest are scored as if served at a typical level.";
-    $("#s-check").closest(".stat").hidden = true;
   }
   $("#s-gap").innerHTML = X.noFiling + ' <small>of ' + X.authorised + ' counties, no filing</small>';
-  $("#s-gap-p").textContent = X.noFiling + " of " + X.authorised + " authorised counties have no deployment filing — " + (X.noFilingResidents / 1e6).toFixed(1) + "M residents with no local crash record." +
-    (FUT ? " Takes about " + futWhen() + " once service starts." : "");
+  $("#s-gap-p").textContent = X.noFiling + " of " + X.authorised + " counties are approved for AVs but have no safety data. This leaves " + (X.noFilingResidents / 1e6).toFixed(1) + "M residents with no local crash record.";
   $("#asof").textContent = D.asOf;
 })();
 
@@ -622,11 +528,6 @@ F.forEach((f, j) => {
 LAYERS.unc.stops = quintiles(T.map((t, i) => LAYERS.unc.val(i)));
 LAYERS.dis.stops = quintiles(T.map((t, i) => LAYERS.dis.val(i)));
 const CROSS_LAYER = "f" + F.indexOf("log_crossing_density");
-(function layerSelect(){
-  const groups = {};
-  Object.entries(LAYERS).forEach(([k, L]) => (groups[L.group] = groups[L.group] || []).push('<option value="' + k + '">' + esc(L.name) + '</option>'));
-  $("#layer").innerHTML = Object.entries(groups).map(([g, o]) => '<optgroup label="' + g + '">' + o.join("") + '</optgroup>').join("");
-})();
 
 /* ---------------- filters ---------------- */
 const FILT0 = () => ({ lo:1, hi:100, status:new Set(hasStatus), county:"", reliable:true });
@@ -635,27 +536,21 @@ const passOthers = i => { const t = T[i];
   return (FILT.county === "" || t[2] === +FILT.county) && FILT.status.has(t[10]) && !(FILT.reliable && t[11] != null && !t[14]); };
 const passRange = i => (FILT.lo <= 1 && FILT.hi >= 100) || (T[i][20] != null && T[i][20] >= FILT.lo && T[i][20] <= FILT.hi);
 $("#fstatus").innerHTML = hasStatus.map(s => '<button type="button" class="chip ' + ["served", "watch", "flag", "none"][s] + '" data-s="' + s + '" aria-pressed="true">' + STATUS[s] + '</button>').join("");
-$("#fcounty").innerHTML = '<option value="">All counties</option>' + D.counties.map((c, i) => '<option value="' + i + '">' + c + '</option>').join("");
 function syncFilterUI(){
-  $("#flo").value = FILT.lo; $("#fhi").value = FILT.hi; $("#fcounty").value = FILT.county; $("#freliable").checked = FILT.reliable;
+  $("#flo").value = FILT.lo; $("#fhi").value = FILT.hi;
   document.querySelectorAll("#fstatus button").forEach(b => b.setAttribute("aria-pressed", FILT.status.has(+b.dataset.s)));
 }
 function applyFilter(){
   let n = 0, res = 0;
   for (let i = 0; i < T.length; i++){ MATCH[i] = passOthers(i) && passRange(i) ? 1 : 0; if (MATCH[i]){ n++; res += T[i][3]; } }
-  const all = n === T.length;
-  $("#fcount").innerHTML = all ? "All <b>" + fmt(n) + "</b> tracts" : "<b>" + fmt(n) + "</b> of " + fmt(T.length) + " tracts · <b>" + (res / 1e6).toFixed(2) + "M</b> residents";
   hist(); draw(); scheduleTable(); saveState();
 }
 function setFilter(p){ Object.assign(FILT, p); syncFilterUI(); applyFilter(); }
 $("#fstatus").addEventListener("click", e => { const b = e.target.closest("button[data-s]"); if (!b) return; const s = +b.dataset.s;
   FILT.status.has(s) ? FILT.status.delete(s) : FILT.status.add(s); syncFilterUI(); applyFilter(); });
-$("#fcounty").addEventListener("change", e => setFilter({ county:e.target.value }));
-$("#freliable").addEventListener("change", e => setFilter({ reliable:e.target.checked }));
 const rangeIn = () => { let a = Math.max(1, Math.min(100, Math.round(+$("#flo").value || 1))), b = Math.max(1, Math.min(100, Math.round(+$("#fhi").value || 100)));
   if (a > b) [a, b] = [b, a]; setFilter({ lo:a, hi:b }); };
 $("#flo").addEventListener("change", rangeIn); $("#fhi").addEventListener("change", rangeIn);
-$("#freset").addEventListener("click", () => { FILT = FILT0(); syncFilterUI(); applyFilter(); });
 
 // histogram of crash-risk percentiles for the tracts that pass the other filters; drag across it to set the range
 const HB = 20, HW = 200, HH = 42, HPAD = 2;
@@ -684,39 +579,12 @@ D.counties.forEach((c, i) => { const o = document.createElement("option"); o.val
 function wmean(rows, k){ let s = 0, w = 0; rows.forEach(t => { if (t[k] != null && t[3] > 0){ s += t[k] * t[3]; w += t[3]; } }); return w ? s / w : null; }
 function renderCounty(i){
   const c = D.counties[i], rows = T.filter(t => t[2] === +i);
-  const sv = rows.filter(t => t[8]), un = rows.filter(t => !t[8]);
-  const pop = rows.reduce((a, t) => a + t[3], 0), popS = sv.reduce((a, t) => a + t[3], 0);
-  const auth = AUTH.has(c), share = sv.length / rows.length;
+  const sv = rows.filter(t => t[8]);
+  const auth = AUTH.has(c);
   let chips = '<div class="chips">' + (auth ? '<span class="chip auth">Authorised 14 Aug 2026</span>' : '<span class="chip none">Not in the Aug 2026 authorisation</span>') +
     (sv.length ? '<span class="chip served">In deployment filings</span>' : '') + '</div>';
   let h = '<h2>' + c + ' County</h2>' + chips +
-    '<dl class="kv"><dt>Tracts listed in a filing</dt><dd>' + fmt(sv.length) + ' / ' + fmt(rows.length) + '</dd>' +
-    '<dt>Residents in listed tracts</dt><dd>' + fmt(popS) + '</dd><dt>County population</dt><dd>' + fmt(pop) + '</dd></dl>' +
-    '<div class="bar" role="img" aria-label="' + pct(share) + ' of tracts listed"><i style="width:' + (100 * share).toFixed(1) + '%"></i></div>';
-  if (auth){
-    const n = [0, 1, 2].map(s => rows.filter(t => t[10] === s)), p = n.map(r => r.reduce((a, t) => a + t[3], 0));
-    h += '<table class="cmp"><thead><tr><th>Validation status</th><th>Tracts</th><th>Residents</th></tr></thead><tbody>' +
-      [0, 1, 2].map(s => '<tr><td><span style="color:' + STATUS_VAR[s] + ';font-weight:700">' + STATUS[s] + '</span></td><td>' + fmt(n[s].length) + '</td><td>' + fmt(p[s]) + '</td></tr>').join("") +
-      '</tbody></table>';
-  }
-  if (sv.length && un.length > 5){
-    const r = (k, f) => '<tr><td>' + k[0] + '</td><td>' + f(wmean(sv, k[1])) + '</td><td>' + f(wmean(un, k[1])) + '</td></tr>';
-    h += '<table class="cmp"><thead><tr><th>Population-weighted</th><th>Listed</th><th>Not listed</th></tr></thead><tbody>' +
-      r(["Median income", 4], money) + r(["Hispanic", 5], v => pct(v)) + r(["Black", 6], v => pct(v)) + r(["No car", 7], v => pct(v)) +
-      '</tbody></table>';
-  }
-  if (c === "Los Angeles"){
-    h += '<p class="note find">Among tracts Waymo listed in LA, each +10 points of Hispanic share cut the odds of any trip to about 0.55× ' +
-      '(Black share: about 0.65×). That is after controlling for density, income and car ownership, and it held in every month from April to December 2024. ' +
-      'Jobs density, a measure of where people travel to, explains about a quarter of the gap; with it controlled, the Hispanic figure is 0.61–0.75×. ' +
-      'Trips also reflect rider demand, so this is a gap in the evidence. It does not show intent.</p>';
-  } else if (sv.length && share > .9){
-    h += '<p class="note">Almost every tract is listed, so a within-county comparison has little to compare. See Los Angeles for the one county with partial coverage.</p>';
-  } else if (!sv.length && auth){
-    h += '<p class="note find">Driverless service is authorised here, and no public deployment filing covers any tract. No California driverless safety record exists for these ' + fmt(rows.length) + ' tracts.</p>';
-  } else if (!sv.length){
-    h += '<p class="note">Not authorised for driverless deployment, and no filing lists any tract.</p>';
-  }
+    '<p class="hint">' + fmt(sv.length) + ' of ' + fmt(rows.length) + ' tracts are listed in a filing.</p>';
   $("#cbody").innerHTML = h;
   sel.value = i; draw();
 }
@@ -908,22 +776,16 @@ function legend(){
 }
 function setCellMode(on){
   cellMode = !!on; pickCell = -1; tip.hidden = true;
-  $("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
   legend(); draw();
 }
 function setLayer(k){
   if (!LAYERS[k]) return;
-  layer = k; $("#layer").value = k;
+  layer = k;
   document.querySelectorAll("[data-layer]").forEach(b => b.setAttribute("aria-pressed", b.dataset.layer === k));
-  const showToggle = k === "dis" && CELLS.length > 0;
-  $("#viewmode").hidden = !showToggle;
-  if (!showToggle) setCellMode(false);
-  legend(); draw();
+  setCellMode(false);
+  legend(); draw(); if (typeof renderTract === "function") renderTract();
 }
 document.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => setLayer(b.dataset.layer)));
-$("#layer").addEventListener("change", e => setLayer(e.target.value));
-$("#vm-tract").addEventListener("click", () => setCellMode(false));
-$("#vm-cell").addEventListener("click", () => setCellMode(true));
 
 /* ---------------- map interaction ---------------- */
 function go(p){ const [lon, lat, z] = PRESET[p]; view = { lon, lat, z }; draw(); }
@@ -983,7 +845,7 @@ function hoverCell(x, y){
   const c = CELLS[i];
   const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
   tip.innerHTML = '<b>500 m road cell</b>' +
-    row("Disengagement / mile", relText(c[2], c[3], c[4], "average")) +
+    row("Disengagement / mile", relText(c[2], null, null, "average")) +
     (c[6] ? row("Largest factor", esc(c[6])) : "") +
     (c[5] != null ? row("Reports / 1,000 mi*", c[5].toFixed(2)) : "") +
     '<span style="font-size:11px;color:var(--ink2)">* a median 2024 test company, roads of this mix</span>';
@@ -996,9 +858,9 @@ function hover(x, y){
   const i = nearest(x, y); if (i < 0){ tip.hidden = true; return; }
   const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–", L = LAYERS[layer], tf = topFactor(i), o = OBS[i];
   const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
-  tip.innerHTML = '<b>' + esc(t[17] || c) + ' · tract ' + t[9].slice(5) + '</b><span style="color:' + STATUS_VAR[t[10]] + ';font-weight:700;font-size:12px">' + STATUS[t[10]] + '</span>' +
-    (DIS[i] ? row("Disengagement / mile", relText(DIS[i][0], DIS[i][1], DIS[i][2], "average")) : "") +
-    row("Crash risk", t[11] == null ? "–" : relText(t[11], t[15], t[16], "typical") + (t[14] ? "" : " *")) +
+  tip.innerHTML = '<b>' + esc(t[17] || c) + ' · tract ' + t[9].slice(5) + '</b>' + statusTag(t[10]) +
+    (DIS[i] ? row("Disengagement / mile", relText(DIS[i][0], null, null, "average")) : "") +
+    row("Crash risk", t[20] == null ? "–" : t[20] + " of 100" + (t[14] ? "" : " *")) +
     (tf ? row(tf.v > 0 ? "Mainly raised by" : "Mainly lowered by", phrase(tf) + " " + xf(tf.v)) : "") +
     (L.type === "ramp" && !layer.startsWith("risk") && layer !== "obs" && layer !== "dis" ? row(esc(L.name), L.val(i) == null ? "–" : L.f(L.val(i))) : "") +
     (o ? row("Collisions 2025–26", o[0]) : "") +
@@ -1014,21 +876,28 @@ function hover(x, y){
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const polTip = l => "Police-reported crashes (CCRS 2022–24): places denser in " + l.feature + " are " + l.or.toFixed(2) + "× as likely to have a " + l.crashType + " crash (likely range " + l.lo.toFixed(2) + "×–" + l.hi.toFixed(2) + "×, " + fmt(l.crashes) + " crashes of that kind). " +
   (l.raises ? "The layer marks where its situation happens." : "The layer does not mark its own kind of crash.");
+function disBarRow(r, capVal){
+  const w = v => v === 0 ? 0 : Math.max(4, Math.sqrt(Math.min(Math.abs(v), capVal) / capVal) * 48), pos = v => 50 + Math.sign(v) * w(v);
+  const l = r.v >= 0 ? 50 : pos(r.v), col = r.v >= 0 ? "var(--r3)" : "var(--accent)";
+  return '<button type="button" class="wrow" title="' + esc(polTip(r.l)) + '">' +
+    '<span>' + esc(cap(r.l.feature)) + '<span class="q">' + esc(r.l.situation) + (r.l.road === "freeway" ? ", freeway" : "") + ' · ' + fmt(r.l.reports) + ' reports' + (r.l.raises ? "" : " · not crash-confirmed") + '</span></span>' +
+    '<span class="wbar" aria-hidden="true"><span class="ax"></span><span class="fill" style="left:' + l.toFixed(1) + '%;width:' + w(r.v).toFixed(1) + '%;background:' + col + '"></span></span>' +
+    '<span class="wv">' + (r.v > 0 ? "+" : "−") + Math.abs(r.v).toFixed(2) + '</span></button>';
+}
 function disSection(i){
   const dz = DIS[i]; if (!dz) return "";
   const L = DM.layers || [], tm = dz[6] || [];
   const rows = L.map((l, k) => ({ l, v:tm[k] })).filter(r => r.v != null && Math.abs(r.v) >= .005).sort((a, b) => b.v - a.v);
   let h = '<div class="sec"><h4>Disengagement risk per mile</h4>' +
-    '<p class="ev"><span><b>' + relText(dz[0], dz[1], dz[2], "an average California road mile") + '</b>.' +
+    '<p class="ev"><span><b>' + xr(dz[0]) + ' an average California road mile</b>.' +
     (dz[4] != null ? ' A median 2024 test company would file about <b>' + dz[4].toFixed(2) + '</b> reports per 1,000 miles on roads like these.' : '') + '</span></p>';
-  if (rows.length) h += '<table class="cmp dlay"><thead><tr><th>Specialised layer</th><th title="Added to, or taken from, an average road mile">Adds</th><th title="Police-crash check">Check</th></tr></thead><tbody>' +
-    rows.slice(0, 6).map(r => '<tr title="' + esc(polTip(r.l)) + '"><td>' + esc(cap(r.l.feature)) + '<span class="sm">' + esc(r.l.situation) + (r.l.road === "freeway" ? ", freeway" : "") + ' · ' + fmt(r.l.reports) + ' reports</span></td><td>' +
-      (r.v > 0 ? "+" : "−") + Math.abs(r.v).toFixed(2) + '</td><td>' + (r.l.raises ? '<span class="ok" aria-label="passes">✓</span>' : '<span class="no" aria-label="not specific">✗</span>') + '</td></tr>').join("") + '</tbody></table>';
-  const hidden = L.length - Math.min(6, rows.length);
-  h += '<p class="hint">Each layer adds to or takes from an average road mile, by how dense its feature is here against California' +
-    (hidden ? ' (' + hidden + ' smaller layer' + (hidden > 1 ? 's' : '') + ' not shown)' : '') + '. ' +
-    '✓: in ' + fmt(DM.policeCrashes) + ' police-reported crashes, denser places have more of that layer\'s own kind of crash (' + DM.policeUp + ' of ' + DM.policeLayers + ' layers); hover a row for the test. ' +
-    (dz[5] != null ? 'The rates rest on about ' + fmt(dz[5]) + ' DMV reports from roads of this mix. ' : '') + 'From the supervised-testing era (notebook 17); no crash data used.</p></div>';
+  if (rows.length){
+    const capVal = Math.max(.02, ...rows.map(r => Math.abs(r.v)));
+    const pctFw = dz[7], surfM = dz[8], fwM = dz[9];
+    const mix = pctFw != null ? ' This tract\'s roads are <b>' + Math.round(100 - pctFw) + '% surface streets</b> and <b>' + Math.round(pctFw) + '% freeway</b>: surface streets here score ' + xr(surfM) + ', freeway scores ' + xr(fwM) + '.' : '';
+    h += '<p class="hint">The score uses how often each situation below shows up here, along with the tract\'s own mix of road types.' + mix + ' The two are blended by that mix, then scaled against the statewide average mile, so they will not add up exactly on their own. Hover a row for its police-crash check.</p>' +
+      '<div class="why">' + rows.map(r => disBarRow(r, capVal)).join("") + '</div>';
+  }
   return h;
 }
 const LOGMAX = Math.log(10);
@@ -1068,17 +937,11 @@ function evidence(i){
   } else if (t[8]) h += '<p class="ev">No 2025–26 collision record for this tract in the filings used by the model.</p>';
   if (a){
     const [refs, near, gaps] = a;
-    let on = 0, onListed = 0, off = {};
-    refs.forEach(r => { if (r >= 0){ on++; if (T[r][24] > 0) onListed++; } else { const k = -r - 1, c = OFFC[k >> 1]; off[c] = off[c] || [0, 0]; off[c][0]++; off[c][1] += k & 1; } });
-    const offL = Object.values(off).reduce((s, v) => s + v[1], 0), listed = onListed + offL;
-    const offTxt = Object.entries(off).sort((p, q) => q[1][0] - p[1][0]).map(([c, v]) => c + " " + v[0] + (FILED.has(c) ? "" : "*")).join(", ");
-    const nearTxt = typeof near === "number" ? '<button type="button" class="linkbtn" data-goto="' + near + '">tract ' + T[near][9] + '</button> (' + (T[near][17] || D.counties[T[near][2]]) + ')'
-      : 'tract ' + near[0] + ' (' + near[1] + ' County, off this map)';
-    const gl = gaps.map(([fi, z]) => esc(LAB[EX.gapFeatures[fi]][0].toLowerCase()) + ' (' + (z > 0 ? "higher" : "lower") + ' here, ' + Math.abs(z).toFixed(1) + ' SD)');
-    h += '<div class="ev"><span><b>Places like this one:</b> ' + listed + ' of its 25 closest look-alikes (by census and road features, anywhere in California) have been in a filing; weighted by months listed, analogue coverage is ' + pct(t[12]) + '.</span>' +
-      '<span>On this map: ' + on + (onListed ? ' (' + onListed + ' listed)' : '') + (offTxt ? '. Elsewhere: ' + offTxt : '') + (offTxt.includes("*") ? ' (* no tract in a filing)' : '') + '.</span>' +
-      '<span><button type="button" class="ibtn" id="analbtn" aria-pressed="' + showAnal + '">' + (showAnal ? "Hide" : "Show") + ' look-alikes on the map</button></span>' +
-      '<span>Closest tract in a filing: ' + nearTxt + ', ' + x2(t[13]) + '× the typical distance between listed tracts' + (t[13] > 2 ? ', far outside driven conditions' : '') + '. It differs most in ' + listAnd(gl) + '.</span></div>';
+    let onListed = 0, off = {};
+    refs.forEach(r => { if (r >= 0){ if (T[r][24] > 0) onListed++; } else { const k = -r - 1, c = OFFC[k >> 1]; off[c] = off[c] || [0, 0]; off[c][0]++; off[c][1] += k & 1; } });
+    const listed = onListed + Object.values(off).reduce((s, v) => s + v[1], 0);
+    h += '<div class="ev"><span><b>Places like this one:</b> ' + listed + ' of its 25 closest look-alikes (by census and road features, anywhere in California) have been in a filing (' + pct(t[12]) + ' analogue coverage).</span>' +
+      '<span><button type="button" class="ibtn" id="analbtn" aria-pressed="' + showAnal + '">' + (showAnal ? "Hide" : "Show") + ' look-alikes on the map</button></span></div>';
   }
   if (FUT && (t[10] === 1 || t[10] === 2)) h += '<p class="ev"><span><b>If service started here:</b> ' + futLine() + ' Until then, the look-alikes above are the evidence.</span></p>';
   h += '<p class="ev">DMV-reported AV crashes 2019–24: <b>' + (t[19] ? (+t[19]).toFixed(t[19] % 1 ? 1 : 0) + (t[18] !== t[19] ? ' (' + (+t[18]).toFixed(t[18] % 1 ? 1 : 0) + ' in autonomous mode)' : '') : 'none reported') + '</b>' +
@@ -1097,27 +960,27 @@ function renderTract(){
   let h = '<div class="tcard"><div class="tc-head"><div><div class="eyebrow">Selected tract</div><h3>' + t[9] + '</h3><div class="where">' + where + '</div></div>' +
     '<div class="tc-actions"><button type="button" class="ibtn" id="pinbtn" aria-pressed="' + (pin === i) + '">' + (pin === i ? "Pinned" : "Pin to compare") + '</button>' +
     '<button type="button" class="ibtn" id="clearbtn" aria-label="Close this tract">×</button></div></div>' +
-    '<div class="chips"><span class="chip ' + ["served", "watch", "flag", "none"][s] + '">' + STATUS[s] + '</span>' + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
-    disSection(i) +
-    (DIS[i] ? '<h4 class="tc-sub">Crash risk · a second, independent model</h4>' : '') + '<p class="lead">' + summaryText(i) + '</p>';
-  if (t[20] != null){
-    h += '<div class="sec"><div class="pctaxis">' + pctAxis(t) + '</div><div class="axkey"><span>● main model</span><span style="color:var(--ink2)"><i style="display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--r1);vertical-align:middle"></i> 90% range</span>' +
-      (t[23] != null ? '<span>◇ second model (DMV 2019–24): ' + ord(t[23]) + '</span>' : '') + '</div></div>';
-  }
-  if (E){
-    h += '<div class="sec"><h4>Why this score</h4><p class="hint">Each factor multiplies expected collisions against a typical listed tract (median of each feature over tracts in a filing; it scores ' + xf(EX.constant) + '). Together they give this tract ' + xf(logRisk(i)) +
-      '. Thin line: likely range from 200 re-tests of the model. Click a row for its features.</p><div class="why">' + E.map(e => barRow(e, "t")).join("") + '</div></div>';
-    if (pin >= 0 && pin !== i && FEAT[pin]){
-      const Ec = explain(i, pin), tot = Ec.reduce((a, e) => a + e.v, 0), [lo, hi] = totalRange(i, pin), p = T[pin];
-      h += '<div class="sec"><h4>Compared with the pinned tract</h4><p class="hint">Tract <button type="button" class="linkbtn" data-goto="' + pin + '">' + p[9] + '</button> (rank ' + p[20] + ' of 100). This tract expects <b>' + xf(tot) + '</b> its collisions (likely range ' + xf(lo) + '–' + xf(hi) + ')' +
-        (lo > 0 ? ': clearly higher.' : hi < 0 ? ': clearly lower.' : ': the re-tests do not agree on which is higher.') + '</p><div class="why">' + Ec.map(e => barRow(e, "p")).join("") + '</div>' +
-        '<span><button type="button" class="ibtn" id="unpinbtn">Unpin</button></span></div>';
+    '<div class="chips">' + statusTag(s) + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
+    disSection(i);
+  if (layer === "risk"){
+    h += (DIS[i] ? '<h4 class="tc-sub">Crash risk · a second, independent model</h4>' : '') + '<p class="lead">' + summaryText(i) + '</p>';
+    if (t[20] != null){
+      h += '<div class="sec"><div class="pctaxis">' + pctAxis(t) + '</div><div class="axkey"><span>● main model</span><span style="color:var(--ink2)"><i style="display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--r1);vertical-align:middle"></i> 90% range</span>' +
+        (t[23] != null ? '<span>◇ second model (DMV 2019–24): ' + ord(t[23]) + '</span>' : '') + '</div></div>';
     }
+    if (E){
+      h += '<div class="sec"><h4>Why this score</h4><p class="hint">Each factor multiplies expected collisions against a typical listed tract (median of each feature over tracts in a filing; it scores ' + xf(EX.constant) + '). Together they give this tract ' + xf(logRisk(i)) +
+        '. Thin line: likely range from 200 re-tests of the model. Click a row for its features.</p><div class="why">' + E.map(e => barRow(e, "t")).join("") + '</div></div>';
+      if (pin >= 0 && pin !== i && FEAT[pin]){
+        const Ec = explain(i, pin), tot = Ec.reduce((a, e) => a + e.v, 0), [lo, hi] = totalRange(i, pin), p = T[pin];
+        h += '<div class="sec"><h4>Compared with the pinned tract</h4><p class="hint">Tract <button type="button" class="linkbtn" data-goto="' + pin + '">' + p[9] + '</button> (rank ' + p[20] + ' of 100). This tract expects <b>' + xf(tot) + '</b> its collisions (likely range ' + xf(lo) + '–' + xf(hi) + ')' +
+          (lo > 0 ? ': clearly higher.' : hi < 0 ? ': clearly lower.' : ': the re-tests do not agree on which is higher.') + '</p><div class="why">' + Ec.map(e => barRow(e, "p")).join("") + '</div>' +
+          '<span><button type="button" class="ibtn" id="unpinbtn">Unpin</button></span></div>';
+      }
+    }
+    h += '<p class="hint" style="font-size:12px;color:var(--ink2)">Crash risk ranks expected AV collisions per quarter if this tract were served like a typical year-old listed tract. It counts every reported collision, whoever was at fault, so it measures exposure to conflict and assigns no blame. The factors describe what the model responds to, not causes: marked crossings stand in for foot traffic and busy streets.</p>';
   }
-  h += '<div class="sec"><h4>Evidence</h4>' + '<p class="hint">' + STATUS_TXT[s] + '</p>' + evidence(i) + '</div>';
-  h += '<div class="sec"><h4>Who lives here</h4><dl class="kv"><dt>Residents</dt><dd>' + fmt(t[3]) + '</dd><dt>Median income</dt><dd>' + money(t[4]) + '</dd>' +
-    '<dt>Hispanic</dt><dd>' + pct(t[5]) + '</dd><dt>Black</dt><dd>' + pct(t[6]) + '</dd><dt>Households with no car</dt><dd>' + pct(t[7]) + '</dd></dl></div>';
-  h += '<p class="hint" style="font-size:12px;color:var(--ink2)">Crash risk ranks expected AV collisions per quarter if this tract were served like a typical year-old listed tract. It counts every reported collision, whoever was at fault, so it measures exposure to conflict and assigns no blame. The factors describe what the model responds to, not causes: marked crossings stand in for foot traffic and busy streets.</p></div>';
+  h += '</div>';
   el.innerHTML = h;
 }
 $("#tbody").addEventListener("click", e => {
@@ -1176,68 +1039,14 @@ const COLS = [
   { k:"exc", label:"vs expected", title:"Collisions vs. the model's expectation, adjusted so one unlucky quarter can't look like a hot spot; arrow means consistently above or below", v:i => OBS[i] ? OBS[i][2] : -1, td:i => OBS[i] ? OBS[i][2].toFixed(2) + "×" + (OBS[i][3] > 1 ? " ▲" : OBS[i][4] < 1 ? " ▼" : "") : "–" },
   { k:"status", label:"Status", v:i => T[i][10], td:i => STATUS[T[i][10]] },
 ];
-let SORT = { k:DIS.some(Boolean) ? "dis" : "risk", dir:-1 }, tableRows = [];
-const SHOW = 200;
-$("#flaghead").innerHTML = COLS.map(c => '<th' + (c.title ? ' title="' + c.title + '"' : '') + ' data-k="' + c.k + '"><button type="button">' + c.label + '</button></th>').join("");
+let SORT = { k:DIS.some(Boolean) ? "dis" : "risk", dir:-1 };
 function sortedMatches(minPop){
   const c = COLS.find(c => c.k === SORT.k);
   return T.map((t, i) => i).filter(i => MATCH[i] && T[i][20] != null && T[i][3] >= minPop)
     .sort((a, b) => { const x = c.v(a), y = c.v(b); return (x < y ? -1 : x > y ? 1 : 0) * SORT.dir || T[b][20] - T[a][20]; });
 }
-let tableQueued = false;
-function scheduleTable(){ if (!tableQueued){ tableQueued = true; requestAnimationFrame(() => { tableQueued = false; renderTable(); }); } }
-function renderTable(){
-  tableRows = sortedMatches(500);
-  document.querySelectorAll("#flaghead th").forEach(th => th.dataset.k === SORT.k ? th.setAttribute("aria-sort", SORT.dir < 0 ? "descending" : "ascending") : th.removeAttribute("aria-sort"));
-  const all = T.filter((t, i) => MATCH[i]).length;
-  $("#flag-sub").innerHTML = '<b>' + fmt(tableRows.length) + ' tracts</b> match the map\'s filters' + (tableRows.length > SHOW ? ' (first ' + SHOW + ' shown; the downloads have all ' + fmt(all) + ' matching tracts)' : '') +
-    '. Tracts with under 500 residents are left out of this list' + (FILT.reliable ? ', and so are tracts outside the conditions driven so far, where the model would be extrapolating' : '') +
-    '. Read crash risk within a county: across metros the level can be off by about ×/÷2.6. Click a column to sort, a row to explain it on the map.';
-  $("#flags tbody").innerHTML = tableRows.slice(0, SHOW).map(i => '<tr tabindex="0" data-i="' + i + '"' + (i === pick ? ' class="sel"' : '') + '>' +
-    COLS.map(c => '<td' + (c.cls ? ' class="' + c.cls + '"' : '') + '>' + c.td(i) + '</td>').join("") + '</tr>').join("") ||
-    '<tr><td colspan="' + COLS.length + '">No tracts match the filters.</td></tr>';
-}
-function markRow(){ document.querySelectorAll("#flags tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.i === pick)); }
-$("#flaghead").addEventListener("click", e => { const th = e.target.closest("th"); if (!th) return;
-  SORT = { k:th.dataset.k, dir:SORT.k === th.dataset.k ? -SORT.dir : (["geoid", "place", "status"].includes(th.dataset.k) ? 1 : -1) }; renderTable(); });
-const openRow = e => { const tr = e.target.closest("tr[data-i]"); if (!tr) return; selectTract(+tr.dataset.i, true); $("#mapsec").scrollIntoView({ behavior:"smooth", block:"start" }); };
-$("#flags tbody").addEventListener("click", openRow);
-$("#flags tbody").addEventListener("keydown", e => { if (e.key === "Enter") openRow(e); });
-
-/* ---------------- exports ---------------- */
-const EXPORT_COLS = ["geoid","county","city","residents","crash_risk_percentile","percentile_lo_90","percentile_hi_90","second_model_percentile","place_risk_ratio",
-  "risk_extrapolated","status","analogue_coverage","median_income","main_factor","main_factor_multiplier","cpuc_collisions_2025_26","expected_2025_26",
-  "observed_vs_expected","observed_vs_expected_lo_90","observed_vs_expected_hi_90",
-  "disengagement_risk_per_mile","disengagement_risk_lo_90","disengagement_risk_hi_90","disengagement_largest_term"];
-const exportRow = i => { const t = T[i], tf = topFactor(i), o = OBS[i] || [];
-  return [t[9], D.counties[t[2]], t[17], t[3], t[20], t[21], t[22], t[23], t[11], t[14] ? 0 : 1, STATUS[t[10]], t[12], t[4],
-    tf ? tf.name + ": " + phrase(tf) : null, tf ? +Math.exp(tf.v).toFixed(2) : null, o[0], o[1], o[2], o[3], o[4],
-    ...(DIS[i] ? DIS[i].slice(0, 4) : [null, null, null, null])]; };
-let downloadsP = null;
-async function download(text, ext){
-  const name = "crash_risk_tracts" + (FILT.county !== "" ? "_" + D.counties[+FILT.county].replace(/\W+/g, "_") : "") + ext;
-  if (window.claude && window.claude.use){
-    downloadsP = downloadsP || window.claude.use("downloads").catch(() => null);
-    const dl = await downloadsP;
-    if (dl){
-      try { await dl.save({ filename:name.replace(/\.geojson$/, ".geo.json"), data:text }); toast("Saved " + name.replace(/\.geojson$/, ".geo.json")); }
-      catch (err){ if (err && err.code !== "declined") toast("This view cannot save files (" + (err.code || "unavailable") + ")."); }
-      return;
-    }
-  }
-  const url = URL.createObjectURL(new Blob([text], { type:ext === ".csv" ? "text/csv" : "application/geo+json" }));
-  const a = Object.assign(document.createElement("a"), { href:url, download:name });
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-$("#flagcsv").addEventListener("click", () => {
-  const q = v => v == null ? "" : (/[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v);
-  download([EXPORT_COLS.join(","), ...sortedMatches(0).map(i => exportRow(i).map(q).join(",")), ""].join("\n"), ".csv");
-});
-$("#flaggeo").addEventListener("click", () => {
-  const features = sortedMatches(0).map(i => { const v = exportRow(i);
-    return { type:"Feature", geometry:{ type:"Point", coordinates:[T[i][0], T[i][1]] }, properties:Object.fromEntries(EXPORT_COLS.map((k, j) => [k, v[j] ?? null])) }; });
-  download(JSON.stringify({ type:"FeatureCollection", name:"AV Validation Gap tract centroids, CPUC filing " + D.asOf, features }), ".geojson");
-});
+function scheduleTable(){}
+function markRow(){}
 
 /* ---------------- shareable view ---------------- */
 // The view is kept as one plain token after "#" (letters, digits and . _ ~ - only), e.g. #lrisk_t06037226002_v-118.300~34.020~7.00
@@ -1250,7 +1059,6 @@ function stateToken(){
   if (FILT.county !== "") p.push("c" + FILT.county);
   if (!FILT.reliable) p.push("x");
   if (showAnal) p.push("a");
-  if (cellMode) p.push("g");
   return p.join("_");
 }
 function applyToken(tok){
@@ -1267,20 +1075,11 @@ function applyToken(tok){
     else if (k === "c" && D.counties[+v]) FILT.county = v;
     else if (k === "x") FILT.reliable = false;
     else if (k === "a") showAnal = true;
-    else if (k === "g") cellMode = true;
   });
   return ok;
 }
 let saveTimer = null;
 function saveState(){ clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { history.replaceState(null, "", "#" + stateToken()); } catch (e) {} }, 400); }
-$("#copylink").addEventListener("click", async () => {
-  const framed = window.top !== window, tok = "#" + stateToken();
-  const text = framed ? tok : location.href.split("#")[0] + tok;
-  try { await navigator.clipboard.writeText(text);
-    toast(framed ? "Copied this view's code. Add it to the end of the page's link to open this exact view." : "Link to this view copied.");
-  } catch (e){ toast("Copy this view's " + (framed ? "code" : "link") + ":", text); }
-});
-
 /* ---------------- toast and chart tooltips ---------------- */
 let toastTimer = null;
 function toast(msg, sel){
@@ -1412,10 +1211,8 @@ function riskChart(){
 readPal();
 const readHash = () => { try { return decodeURIComponent((location.hash || "").slice(1)); } catch (e) { return ""; } };
 const fromLink = applyToken(readHash());
-$("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
 if (!DIS.some(Boolean)) $("#q-dis").hidden = true;
-if (FUT) $("#m-fut").textContent = "about " + futWhen();
-syncFilterUI(); setLayer(layer); riskChart(); driversChart(); disLayersChart(); findings();
+syncFilterUI(); setLayer(layer);
 for (let i = 0; i < T.length; i++) MATCH[i] = passOthers(i) && passRange(i) ? 1 : 0;
 applyFilter();
 renderCounty(pick >= 0 && T[pick][2] >= 0 ? T[pick][2] : Math.max(0, D.counties.indexOf("Los Angeles")));
@@ -1426,6 +1223,5 @@ const repaint = () => { readPal(); draw(); };
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", repaint);
 new MutationObserver(repaint).observe(document.documentElement, { attributes:true, attributeFilter:["data-theme"] });
 addEventListener("hashchange", () => { if (applyToken(readHash())){ syncFilterUI(); applyFilter(); renderTract();
-  $("#vm-tract").setAttribute("aria-pressed", !cellMode); $("#vm-cell").setAttribute("aria-pressed", cellMode);
   if (pick >= 0 && T[pick][2] >= 0) renderCounty(T[pick][2]); } });
 </script>

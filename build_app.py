@@ -149,8 +149,9 @@ def disengagement(geoids):
     """
     Notebook 17's layer, aligned with the map's tracts: [risk per mile (x an average California road
     mile), 90% lo, hi, largest term, reports per 1,000 miles at the 2024 median company, reports behind
-    the tract's road mix, [one term per specialised layer]], plus the numbers the page quotes and, per
-    layer, its feature, the reports naming its situation and the police-crash check (nb 17 section 5).
+    the tract's road mix, [one term per specialised layer], pct of this tract's road length that is
+    freeway, the surface-road multiplier, the freeway multiplier], plus the numbers the page quotes and,
+    per layer, its feature, the reports naming its situation and the police-crash check (nb 17 section 5).
     It is a separate model from the supervised-testing era and uses no crash data.
     """
     from avgap_disengage import FEATURE_LABEL, TIED, situation_of
@@ -162,7 +163,8 @@ def disengagement(geoids):
     rows = [None if pd.isna(x.risk_multiplier) else
             [round(float(x.risk_multiplier), 3), round(float(x.risk_multiplier_lo), 3), round(float(x.risk_multiplier_hi), 3),
              x.top_feature if isinstance(x.top_feature, str) else None, round(float(x.per_1k_miles), 3),
-             ip(x.n_sample), [r(v, 3) for v in tv[j]]]
+             ip(x.n_sample), [r(v, 3) for v in tv[j]],
+             r(x.pct_freeway * 100, 1), r(x.surface_multiplier, 3), r(x.freeway_multiplier, 3)]
             for j, x in enumerate(d.itertuples())]
     v = m["validation"]
     pol = v["police_by_layer"]
