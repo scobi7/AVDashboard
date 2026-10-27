@@ -91,6 +91,32 @@ def shapes(geoids):
     return polys, outline
 
 
+NEAR_FEATURES = ["log_density", "pct_multiunit", "pct_transit", "pct_walk_bike", "pct_no_vehicle", "log_income",
+                 "log_road_density", "share_arterial", "log_crossing_density", "log_signal_density"]
+
+
+def closest_listed(ex, served, pos, k=3):
+    """
+    For every tract not in a filing: its k closest listed tracts, [index on the map, distance], in the
+    standardised census + road space that the look-alikes use (geography is not a feature). Distances
+    are in units of the median nearest-neighbour distance among listed tracts, so 1 = a typical gap.
+    These are the places to test in to learn about the tract.
+    """
+    from sklearn.neighbors import NearestNeighbors
+    X = ex[NEAR_FEATURES]
+    ok = X.notna().all(axis=1).to_numpy() & served.notna().to_numpy()
+    Z = ((X - X[ok].mean()) / X[ok].std()).to_numpy()
+    listed = np.where(ok & (served.fillna(False).astype(bool).to_numpy()))[0]
+    nn = NearestNeighbors(n_neighbors=k + 1).fit(Z[listed])
+    scale = np.median(nn.kneighbors(Z[listed])[0][:, 1])
+    out = [None] * len(ex)
+    todo = np.where(ok & ~np.isin(np.arange(len(ex)), listed))[0]
+    dist, idx = nn.kneighbors(Z[todo], n_neighbors=k)
+    for row, d, ii in zip(todo, dist, idx):
+        out[row] = [[int(listed[j]), round(float(x / scale), 2)] for x, j in zip(d, ii)]
+    return out
+
+
 def explanations(t, geoids):
     """
     Notebook 13's exports, aligned with the map's tracts:
@@ -142,7 +168,8 @@ def explanations(t, geoids):
         anal.append([[ref_of(a) for a in an.loc[g, "analogues"].split()],
                      pos[near] if near in pos else [near, allt.county[near]], gaps])
     meta["gapFeatures"] = gap_feats
-    return meta, {"feat": feat, "obs": obs, "anal": anal, "offCounties": off_counties}
+    return meta, {"feat": feat, "obs": obs, "anal": anal, "offCounties": off_counties,
+                  "near3": closest_listed(ex, t.set_index("GEOID").served_now.reindex(geoids), pos)}
 
 
 def disengagement(geoids):
