@@ -2,15 +2,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>California AV Validation Gap</title>
+<script>document.documentElement.dataset.theme = new URLSearchParams(location.search).get("theme") || "medium"; // medium by default; ?theme=light or ?theme=dark for the others</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Overpass+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: one column of panels; the map panel pairs the map with a tract card that explains it. */
 :root{
-  --bg:#f3f5f7; --surface:#ffffff; --ink:#15212c; --ink2:#4c5a67; --muted:#8a96a2; --line:#dce2e8;
-  --accent:#1f6fd1; --accent-soft:#dbe8f9; --cool:#86b0e8; --gap:#d45a1f; --gap-soft:#fbe5d8; --other:#c2cbd4; --watch:#c99312;
-  --r0:#ffffb2; --r1:#fecc5c; --r2:#fd8d3c; --r3:#f03b20; --r4:#bd0026;
+  --bg:#f6f3fa; --surface:#ffffff; --ink:#1d1530; --ink2:#5a4f70; --muted:#918aa3; --line:#e3dcee;
+  --accent:#0a7ea4; --accent-soft:#d6edf5; --cool:#7fc4dc; --gap:#d45a1f; --gap-soft:#fbe5d8; --other:#cfc6dc; --watch:#c99312;
+  --r0:#e9d8f5; --r1:#c79be0; --r2:#9d5fc9; --r3:#6b2fa0; --r4:#3b0f70;
   --shadow:0 1px 2px rgba(21,33,44,.06),0 4px 16px rgba(21,33,44,.05);
   --display:"Overpass",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"Overpass Mono",ui-monospace,"SF Mono",Consolas,monospace;
@@ -18,18 +19,26 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#0e1318; --surface:#151c23; --ink:#e5ecf2; --ink2:#a6b3bf; --muted:#6f7c88; --line:#26313b;
-    --accent:#5b9ef0; --accent-soft:#1b2e47; --cool:#2f5b8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
-    --r0:#3d1f12; --r1:#7a3418; --r2:#c2571f; --r3:#f08a3c; --r4:#ffd166;
+    --bg:#100b1a; --surface:#181124; --ink:#ece7f5; --ink2:#b2a8c4; --muted:#7d7391; --line:#2d2342;
+    --accent:#4cc9f0; --accent-soft:#12323f; --cool:#2f6f8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#3a3052; --watch:#e3b341;
+    --r0:#2b1650; --r1:#5a2a8f; --r2:#9a4fc4; --r3:#d38be0; --r4:#f7d6f2;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#0e1318; --surface:#151c23; --ink:#e5ecf2; --ink2:#a6b3bf; --muted:#6f7c88; --line:#26313b;
-  --accent:#5b9ef0; --accent-soft:#1b2e47; --cool:#2f5b8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#34404b; --watch:#e3b341;
-  --r0:#3d1f12; --r1:#7a3418; --r2:#c2571f; --r3:#f08a3c; --r4:#ffd166;
+  --bg:#100b1a; --surface:#181124; --ink:#ece7f5; --ink2:#b2a8c4; --muted:#7d7391; --line:#2d2342;
+  --accent:#4cc9f0; --accent-soft:#12323f; --cool:#2f6f8f; --gap:#f0874a; --gap-soft:#3b2519; --other:#3a3052; --watch:#e3b341;
+  --r0:#2b1650; --r1:#5a2a8f; --r2:#9a4fc4; --r3:#d38be0; --r4:#f7d6f2;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
+}
+/* medium (default): mid-tone page, saturated yellow-to-indigo risk ramp, status rings get a white halo */
+:root[data-theme="medium"]{
+  color-scheme:light;
+  --bg:#e3e6ee; --surface:#f6f7fb; --ink:#171b2b; --ink2:#434a60; --muted:#767d93; --line:#c3c8d6;
+  --accent:#0b6fd1; --accent-soft:#d3e4f8; --cool:#8fb8e8; --gap:#d93a0b; --gap-soft:#fbdcd1; --other:#b2b8c8; --watch:#0d9488;
+  --r0:#fbe9a0; --r1:#f9a15b; --r2:#e0455f; --r3:#9b2a85; --r4:#3d0f6b;
+  --shadow:0 1px 2px rgba(23,27,43,.08),0 4px 16px rgba(23,27,43,.07);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -425,7 +434,7 @@ const statusTag = s => '<span class="statustag" style="color:' + STATUS_VAR[s] +
 const STATUS_TXT = [
   "Listed in a deployment filing: authorised service area. Listing does not mean every street has been driven.",
   "Authorised and not listed, but places with a similar built environment have been listed.",
-  "Authorised and not listed, and places like it have barely been listed, or it lies outside the conditions driven so far. In the terms of SFCTA's 2025 permitting framework: no public performance record for this kind of place yet.",
+  "Authorised and not listed, and places like it have barely been listed. In the terms of SFCTA's 2025 permitting framework: no public performance record for this kind of place yet.",
   "Not in the Aug 2026 authorisation."];
 const x2 = v => v == null ? "–" : (+v).toFixed(2);
 const isAuth = t => t[2] >= 0 && AUTH.has(D.counties[t[2]]);
@@ -469,7 +478,6 @@ function summaryText(i){
   if (up.length) s += "Raised most by " + listAnd(up.map(ph)) + (dn.length ? "; lowered by " + listAnd(dn.map(ph)) : "") + ".";
   else if (dn.length) s += "Lowered by " + listAnd(dn.map(ph)) + ".";
   else s += "No factor moves it far from a typical listed tract.";
-  if (!t[14]) s += " <b>It lies outside the conditions driven so far, so the score is an extrapolation.</b>";
   return s;
 }
 
@@ -496,8 +504,8 @@ const LAYERS = {
   dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr, ring:true,
            desc:"<b>Disengagement risk per mile:</b> how often a supervised test vehicle needed a human to take over, per mile on this tract's roads, against the California average (1×). Built from DMV disengagement reports and OpenStreetMap road features — no crash data used.",
            data:"Data: CA DMV disengagement and mileage reports 2020–24 · OpenStreetMap · Caltrans traffic counts (notebook 17)" },
-  risk:  { group:"Crash risk", name:"Crash risk", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, fade:true, ring:true,
-           desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract. Faded tracts lie outside the conditions driven so far.",
+  risk:  { group:"Crash risk", name:"Crash risk", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, ring:true,
+           desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract.",
            data:"Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING },
   unc:   { group:"Crash risk", name:"How uncertain is the ranking", type:"ramp", val:i => T[i][21] == null ? null : T[i][22] - T[i][21], f:v => Math.round(v) + " pts",
            desc:"<b>How uncertain is the ranking:</b> how much a tract's rank could shift if the model were re-tested on different neighbourhoods. Darker tracts are less certain.",
@@ -535,14 +543,32 @@ const CROSS_LAYER = "f" + F.indexOf("log_crossing_density");
 const FILT0 = () => ({ lo:1, hi:100, status:new Set(hasStatus), county:"", reliable:true });
 let FILT = FILT0(), MATCH = new Uint8Array(T.length);
 const passOthers = i => { const t = T[i];
-  return (FILT.county === "" || t[2] === +FILT.county) && FILT.status.has(t[10]) && !(FILT.reliable && t[11] != null && !t[14]); };
-const passRange = i => (FILT.lo <= 1 && FILT.hi >= 100) || (T[i][20] != null && T[i][20] >= FILT.lo && T[i][20] <= FILT.hi);
+  return (FILT.county === "" || t[2] === +FILT.county) && FILT.status.has(t[10]); };
+// the range filter ranks tracts (1-100) on whatever the map is showing: its own values on a ramp layer, crash risk otherwise
+let MET = [], metKey = "";
+function rankArray(k){
+  const L = LAYERS[k], v = T.map((t, i) => L.val(i)), s = v.filter(x => x != null).sort((a, b) => a - b), n = s.length;
+  return v.map(x => { if (x == null) return null; let lo = 0, hi = n; while (lo < hi){ const m = (lo + hi) >> 1; s[m] < x ? lo = m + 1 : hi = m; }
+    return Math.max(1, Math.min(100, Math.round(lo / n * 99) + 1)); });
+}
+const RANKS = {};
+function setMetric(){
+  const k = LAYERS[layer].type === "ramp" && layer !== "risk" ? layer : "risk";
+  if (k === metKey) return false;
+  metKey = k; MET = k === "risk" ? T.map(t => t[20]) : (RANKS[k] = RANKS[k] || rankArray(k));
+  const name = k === "risk" ? "Crash risk" : LAYERS[k].name + " (rank)";
+  $("#hist-lab").textContent = name;
+  $("#flo").setAttribute("aria-label", "Lowest " + name); $("#fhi").setAttribute("aria-label", "Highest " + name);
+  return true;
+}
+const passRange = i => (FILT.lo <= 1 && FILT.hi >= 100) || (MET[i] != null && MET[i] >= FILT.lo && MET[i] <= FILT.hi);
 $("#fstatus").innerHTML = hasStatus.map(s => '<button type="button" class="dotbtn" style="color:' + STATUS_VAR[s] + '" data-s="' + s + '" aria-pressed="true"><span class="dot"></span>' + STATUS[s] + '</button>').join("");
 function syncFilterUI(){
   $("#flo").value = FILT.lo; $("#fhi").value = FILT.hi;
   document.querySelectorAll("#fstatus button").forEach(b => b.setAttribute("aria-pressed", FILT.status.has(+b.dataset.s)));
 }
 function applyFilter(){
+  setMetric();
   let n = 0, res = 0;
   for (let i = 0; i < T.length; i++){ MATCH[i] = passOthers(i) && passRange(i) ? 1 : 0; if (MATCH[i]){ n++; res += T[i][3]; } }
   hist(); draw(); scheduleTable(); saveState();
@@ -558,7 +584,7 @@ $("#flo").addEventListener("change", rangeIn); $("#fhi").addEventListener("chang
 const HB = 20, HW = 200, HH = 42, HPAD = 2;
 function hist(){
   const n = new Array(HB).fill(0);
-  for (let i = 0; i < T.length; i++){ const p = T[i][20]; if (p != null && passOthers(i)) n[Math.min(HB - 1, Math.floor((p - 1) / 5))]++; }
+  for (let i = 0; i < T.length; i++){ const p = MET[i]; if (p != null && passOthers(i)) n[Math.min(HB - 1, Math.floor((p - 1) / 5))]++; }
   const mx = Math.max(1, ...n), bw = (HW - 2 * HPAD) / HB;
   $("#hist").innerHTML = n.map((v, b) => { const lo = b * 5 + 1, hi = b * 5 + 5, on = hi >= FILT.lo && lo <= FILT.hi, h = Math.max(v ? 2 : 0, v / mx * (HH - 6));
     return '<rect x="' + (HPAD + b * bw + .5).toFixed(1) + '" y="' + (HH - 2 - h).toFixed(1) + '" width="' + (bw - 1.5).toFixed(1) + '" height="' + h.toFixed(1) +
@@ -627,9 +653,9 @@ function styleOf(i){
   if (L.type === "cat"){ const C = CAT[layer], c = C.cls(i); return [pal[C.col[c]], C.alpha[c], c]; }
   const v = L.val(i), col = rampColor(v, L.stops);
   if (col == null) return [pal["--other"], .35, 0];
-  return [col, L.fade && !T[i][14] ? .3 : 1, 0];
+  return [col, 1, 0];
 }
-let proj = [];
+let snap = null, snapValid = false, proj = [], hoverI = -1, lastView = "", settleT = 0, moving = false;
 function drawOutline(){
   if (!OUTLINE.length) return;
   ctx.globalAlpha = Math.max(.25, Math.min(.6, .6 - (view.z - 1) * .03));
@@ -641,21 +667,40 @@ function drawOutline(){
   }
   ctx.globalAlpha = 1;
 }
+// every tract's outline in one stroke, once it is big enough on screen to resolve (about 3 px)
+function drawTractGrid(){
+  ctx.globalAlpha = .5; ctx.strokeStyle = pal["--ink2"] || pal["--ink"]; ctx.lineWidth = .55;
+  ctx.beginPath();
+  for (let i = 0; i < TP.length; i++){
+    const b = TPBOUNDS[i]; if (!b) continue;
+    const [x0, y1] = px(b[0], b[2]), [x1, y0] = px(b[1], b[3]);
+    if (x1 < -20 || y1 < -20 || x0 > W + 20 || y0 > H + 20 || (x1 - x0 < 3 && y1 - y0 < 3)) continue;
+    TP[i].forEach(([lon, lat], j) => { const [a, c] = px(lon, lat); j ? ctx.lineTo(a, c) : ctx.moveTo(a, c); });
+    ctx.closePath();
+  }
+  ctx.stroke(); ctx.globalAlpha = 1;
+}
 const dotR = () => Math.max(1.3, Math.min(5, 1.05 * Math.sqrt(view.z)));
+// every tract draws as its real shape once it is a few pixels across (bigger bar while panning); smaller ones stay dots
+function polyShown(i){
+  const b = TPBOUNDS[i]; if (!TP[i] || !b) return false;
+  const k = kBase() * view.z, min = moving ? 4 : 2;
+  return (b[1] - b[0]) * k * COS >= min || (b[3] - b[2]) * k >= min;
+}
 function tractPath(i){
-  const poly = view.z >= POLY_Z ? TP[i] : null;
+  const poly = polyShown(i) ? TP[i] : null;
   ctx.beginPath();
   if (poly){ poly.forEach(([lon, lat], j) => { const [a, b] = px(lon, lat); j ? ctx.lineTo(a, b) : ctx.moveTo(a, b); }); ctx.closePath(); return true; }
   const [x, y] = proj[i]; ctx.arc(x, y, dotR(), 0, 6.2832); return false;
 }
 function ring(i, color, width, dash, grow = 5){
   ctx.globalAlpha = 1; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
-  if (view.z >= POLY_Z && TP[i]) tractPath(i);
+  if (polyShown(i)) tractPath(i);
   else { const [x, y] = proj[i]; ctx.beginPath(); ctx.arc(x, y, dotR() + grow, 0, 6.2832); }
   ctx.stroke(); ctx.setLineDash([]);
 }
 let drawQueued = false;
-function draw(){ if (!drawQueued){ drawQueued = true; requestAnimationFrame(() => { drawQueued = false; drawNow(); }); } }
+function draw(){ snapValid = false; if (!drawQueued){ drawQueued = true; requestAnimationFrame(() => { drawQueued = false; drawNow(); }); } }
 function cellSize(){ return Math.max(1.4, Math.min(5.5, kBase() * view.z * 0.0048 * COS)); }
 function drawCells(){
   cellProj = CELLS.map(c => px(c[0], c[1]));
@@ -687,15 +732,39 @@ function ringCell(i){
   ctx.globalAlpha = 1; ctx.strokeStyle = pal["--ink"]; ctx.lineWidth = 2.4;
   ctx.strokeRect(x - s / 2 - 2, y - s / 2 - 2, s + 4, s + 4);
 }
+function takeSnap(){
+  if (moving){ snapValid = false; return; }
+  if (!snap) snap = document.createElement("canvas");
+  if (snap.width !== cv.width || snap.height !== cv.height){ snap.width = cv.width; snap.height = cv.height; }
+  const c = snap.getContext("2d"); c.clearRect(0, 0, snap.width, snap.height); c.drawImage(cv, 0, 0); snapValid = true;
+}
+function drawHoverLayer(){
+  ctx.globalAlpha = 1;
+  if (hoverI < 0 || hoverI === pick || (cellMode && layer === "dis")) return;
+  if (polyShown(hoverI)){ tractPath(hoverI); ctx.globalAlpha = .22; ctx.fillStyle = pal["--ink"]; ctx.fill(); }
+  ring(hoverI, pal["--ink"], 1.8, null, 3); ctx.globalAlpha = 1;
+}
+function redrawHover(){
+  if (!snapValid){ draw(); return; }
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(snap, 0, 0); ctx.restore();
+  drawHoverLayer();
+}
 function drawNow(){
   if (!W) return;
+  snapValid = false;
   ctx.clearRect(0, 0, W, H);
+  // while the view is changing, skip the outlines and rings; redraw in full once it has been still for 150 ms
+  const vk = view.lon + "," + view.lat + "," + view.z;
+  moving = vk !== lastView; lastView = vk;
+  if (moving){ clearTimeout(settleT); settleT = setTimeout(() => { moving = false; draw(); }, 150); }
   drawOutline();
+  if (cellMode && layer === "dis" && CELLS.length && !moving) drawTractGrid();
   if (cellMode && layer === "dis" && CELLS.length){ drawCells(); return; }
   const selC = +sel.value, L = LAYERS[layer];
   proj = T.map(t => px(t[0], t[1]));
   let visible = 0;
   const passes = L.type === "cat" ? CAT[layer].order : [null];
+  const ringed = [[], [], [], [], [], [], [], []]; // status * 2 + (drawn as a shape ? 1 : 0)
   for (const P of passes){
     for (let i = 0; i < T.length; i++){
       const [x, y] = proj[i];
@@ -704,11 +773,24 @@ function drawNow(){
       if (P != null && c !== P) continue;
       ctx.globalAlpha = MATCH[i] ? a : Math.min(a, .1);
       ctx.fillStyle = col;
+      // every tract fills as its real shape (dots only for tracts too small to resolve)
       const isPoly = tractPath(i); ctx.fill();
-      if (isPoly){ ctx.lineWidth = .7; ctx.strokeStyle = pal["--surface"]; ctx.stroke(); }
-      if (L.ring && MATCH[i]){ ctx.globalAlpha = isPoly ? .75 : 1; ctx.lineWidth = isPoly ? 1.1 : Math.max(.8, dotR() * .38); ctx.strokeStyle = statusPal()[T[i][10]]; ctx.stroke(); }
+      if (L.ring && MATCH[i] && !moving) ringed[T[i][10] * 2 + (isPoly ? 1 : 0)].push(i);
     }
   }
+  ringed.forEach((list, k) => {
+    if (!list.length) return;
+    const poly = k & 1, r = dotR();
+    const w = poly ? 1.5 : Math.max(1, r * .45);
+    ctx.beginPath();
+    for (const i of list){
+      if (poly){ TP[i].forEach(([lon, lat], j) => { const [a, c] = px(lon, lat); j ? ctx.lineTo(a, c) : ctx.moveTo(a, c); }); ctx.closePath(); }
+      else { const [x, y] = proj[i]; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832); }
+    }
+    ctx.globalAlpha = .85; ctx.lineWidth = w + 1.8; ctx.strokeStyle = pal["--surface"]; ctx.stroke(); // halo, so the ring reads on any fill
+    ctx.globalAlpha = 1; ctx.lineWidth = w; ctx.strokeStyle = statusPal()[k >> 1]; ctx.stroke();
+  });
+  if (!moving) drawTractGrid();
   for (let i = 0; i < T.length; i++){ const [x, y] = proj[i]; if (MATCH[i] && x >= -8 && y >= -8 && x <= W + 8 && y <= H + 8) visible++; }
   ctx.globalAlpha = 1;
   // outline the selected county's tracts faintly (dot mode only - real polygon borders already show this at high zoom)
@@ -726,6 +808,7 @@ function drawNow(){
   }
   if (pin >= 0 && pin !== pick) ring(pin, pal["--ink"], 2.2, [4, 3]);
   if (pick >= 0) ring(pick, pal["--ink"], 2.8, null);
+  takeSnap(); drawHoverLayer();
   const cEl = $("#tractcount");
   if (cEl) cEl.innerHTML = "<b>" + visible.toLocaleString() + "</b> of " + T.length.toLocaleString() + " tracts in view" + (MATCH.every(Boolean) ? "" : " match the filters");
   const labelOp = Math.max(0, Math.min(1, (5.5 - view.z) / 2.5));
@@ -765,7 +848,7 @@ function legend(){
     }
   } else {
     const [, nums] = rampKey(L);
-    const extra = (L.fade ? '<span class="key"><i style="background:var(--r2);opacity:.3"></i>Faded: extrapolated</span>' : '') +
+    const extra = '' +
       (L.ring ? STATUS.map((s, k) => '<span class="key"><i style="background:transparent;border:2px solid ' + STATUS_VAR[k] + '"></i>' + s + '</span>').join("") : '') +
       (L.nullText ? '<span class="key"><i style="background:var(--other);opacity:.35"></i>' + L.nullText + '</span>' : '');
     key.innerHTML = '<span class="title">' + esc(L.name) + '</span><span style="display:flex;height:10px;border-radius:3px;overflow:hidden">' +
@@ -785,6 +868,10 @@ function setLayer(k){
   layer = k;
   document.querySelectorAll("[data-layer]").forEach(b => b.setAttribute("aria-pressed", b.dataset.layer === k));
   setCellMode(false);
+  const hadMetric = metKey !== ""; // the first call is boot, which must keep a range restored from a shared link
+  tip.dataset.k = "";
+  if (setMetric() && hadMetric){ FILT.lo = 1; FILT.hi = 100; }
+  if (hadMetric){ syncFilterUI(); applyFilter(); }
   legend(); draw(); if (typeof renderTract === "function") renderTract();
 }
 document.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click", () => setLayer(b.dataset.layer)));
@@ -808,6 +895,7 @@ cv.addEventListener("keydown", e => { const s = 60 / (kBase() * view.z);
   const m = { ArrowLeft:[-s,0], ArrowRight:[s,0], ArrowUp:[0,s], ArrowDown:[0,-s] }[e.key];
   if (m){ e.preventDefault(); view.lon += m[0] / COS; view.lat += m[1]; draw(); }
   if (e.key === "+" || e.key === "=") zoomAt(1.4); if (e.key === "-") zoomAt(1 / 1.4); });
+let hoverAt = null, hoverQ = false;
 const ptrs = new Map(); let drag = null, moved = 0, pinch = null;
 cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
   if (ptrs.size === 1){ drag = { x:e.clientX, y:e.clientY, lon:view.lon, lat:view.lat }; moved = 0; cv.classList.add("dragging"); }
@@ -818,7 +906,8 @@ cv.addEventListener("pointermove", e => {
   if (pinch && ptrs.size === 2){ const [a, b] = [...ptrs.values()]; view.z = Math.max(.8, Math.min(60, pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d)); draw(); return; }
   if (drag){ const k = kBase() * view.z, dx = e.clientX - drag.x, dy = e.clientY - drag.y; moved = Math.max(moved, Math.hypot(dx, dy));
     view.lon = drag.lon - dx / (k * COS); view.lat = drag.lat + dy / k; draw(); tip.hidden = true; return; }
-  hover(e.clientX - r.left, e.clientY - r.top);
+  hoverAt = [e.clientX - r.left, e.clientY - r.top];
+  if (!hoverQ){ hoverQ = true; requestAnimationFrame(() => { hoverQ = false; if (hoverAt) hover(hoverAt[0], hoverAt[1]); }); }
 });
 const end = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
   if (drag && moved < 4){ const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
@@ -826,12 +915,13 @@ const end = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
     else { const i = nearest(mx, my); if (i >= 0) selectTract(i, false); } }
   if (!ptrs.size){ drag = null; cv.classList.remove("dragging"); } };
 cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-cv.addEventListener("pointerleave", () => { tip.hidden = true; });
+cv.addEventListener("pointerleave", () => { hoverAt = null; tip.hidden = true; if (hoverI >= 0){ hoverI = -1; redrawHover(); } });
 function nearest(x, y){
-  if (view.z >= POLY_Z){
+  {
     const [lon, lat] = unpx(x, y);
     for (let i = 0; i < TP.length; i++){
       const b = TPBOUNDS[i]; if (!b || lon < b[0] || lon > b[1] || lat < b[2] || lat > b[3]) continue;
+      if (!polyShown(i)) continue;
       if (pointInPoly(lon, lat, TP[i])) return i;
     }
   }
@@ -842,8 +932,20 @@ function nearestCell(x, y){
   for (let i = 0; i < cellProj.length; i++){ const dx = cellProj[i][0] - x, dy = cellProj[i][1] - y, d = dx * dx + dy * dy; if (d < bd){ bd = d; best = i; } }
   return best;
 }
+function placeTip(x, y){
+  const tw = tip.offsetWidth, th = tip.offsetHeight, key = $("#colorkey");
+  let left = Math.max(6, Math.min(x + 14, W - tw - 6)), top = Math.min(Math.max(6, y - th - 10), H - th - 6);
+  if (!key.hidden){
+    const kl = key.offsetLeft - 8, kt = key.offsetTop - 8, kr = key.offsetLeft + key.offsetWidth + 8, kb = key.offsetTop + key.offsetHeight + 8;
+    const hit = () => left < kr && left + tw > kl && top < kb && top + th > kt;
+    if (hit()) left = Math.max(6, x - tw - 14);       // flip to the left of the cursor
+    if (hit()) top = Math.min(H - th - 6, kb);          // otherwise drop below the key
+  }
+  tip.style.left = left + "px"; tip.style.top = top + "px";
+}
 function hoverCell(x, y){
   const i = nearestCell(x, y); if (i < 0){ tip.hidden = true; return; }
+  tip.dataset.k = "";
   const c = CELLS[i];
   const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
   tip.innerHTML = '<b>500 m road cell</b>' +
@@ -852,24 +954,26 @@ function hoverCell(x, y){
     (c[5] != null ? row("Reports / 1,000 mi*", c[5].toFixed(2)) : "") +
     '<span style="font-size:11px;color:var(--ink2)">* a median 2024 test company, roads of this mix</span>';
   tip.hidden = false;
-  const tw = tip.offsetWidth, th = tip.offsetHeight;
-  tip.style.left = Math.max(6, Math.min(x + 14, W - tw - 6)) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
+  placeTip(x, y);
 }
 function hover(x, y){
-  if (cellMode && layer === "dis"){ hoverCell(x, y); return; }
-  const i = nearest(x, y); if (i < 0){ tip.hidden = true; return; }
+  if (cellMode && layer === "dis"){ hoverI = -1; hoverCell(x, y); return; }
+  const i = nearest(x, y); if (i !== hoverI){ hoverI = i; redrawHover(); }
+  if (i < 0){ tip.hidden = true; return; }
+  const tk = layer + ":" + i;
+  if (tip.dataset.k === tk && !tip.hidden){ placeTip(x, y); return; } // same tract: just move the tooltip
+  tip.dataset.k = tk;
   const t = T[i], c = t[2] >= 0 ? D.counties[t[2]] : "–", L = LAYERS[layer], tf = topFactor(i), o = OBS[i];
   const row = (a, b) => '<div class="row"><span>' + a + '</span><span>' + b + '</span></div>';
   tip.innerHTML = '<b>' + esc(t[17] || c) + ' · tract ' + t[9].slice(5) + '</b>' + statusTag(t[10]) +
     (DIS[i] ? row("Disengagement / mile", relText(DIS[i][0], null, null, "average")) : "") +
-    row("Crash risk", t[20] == null ? "–" : t[20] + " of 100" + (t[14] ? "" : " *")) +
+    row("Crash risk", t[20] == null ? "–" : t[20] + " of 100") +
     (tf ? row(tf.v > 0 ? "Mainly raised by" : "Mainly lowered by", phrase(tf) + " " + xf(tf.v)) : "") +
     (L.type === "ramp" && !layer.startsWith("risk") && layer !== "obs" && layer !== "dis" ? row(esc(L.name), L.val(i) == null ? "–" : L.f(L.val(i))) : "") +
     (o ? row("Collisions 2025–26", o[0]) : "") +
-    row("Residents", fmt(t[3])) + (t[14] ? "" : '<span style="font-size:11px;color:var(--ink2)">* outside the conditions driven so far</span>');
+    row("Residents", fmt(t[3]));
   tip.hidden = false;
-  const tw = tip.offsetWidth, th = tip.offsetHeight;
-  tip.style.left = Math.max(6, Math.min(x + 14, W - tw - 6)) + "px"; tip.style.top = Math.min(Math.max(6, y - th - 10), H - th - 6) + "px";
+  placeTip(x, y);
 }
 
 /* ---------------- one tract: the product's answer for a place ---------------- */
@@ -880,7 +984,7 @@ const polTip = l => "Police-reported crashes (CCRS 2022–24): places denser in 
   (l.raises ? "The layer marks where its situation happens." : "The layer does not mark its own kind of crash.");
 function disBarRow(r, capVal){
   const w = v => v === 0 ? 0 : Math.max(4, Math.sqrt(Math.min(Math.abs(v), capVal) / capVal) * 48), pos = v => 50 + Math.sign(v) * w(v);
-  const l = r.v >= 0 ? 50 : pos(r.v), col = r.v >= 0 ? "var(--r3)" : "var(--accent)";
+  const l = r.v >= 0 ? 50 : pos(r.v), col = rampColor(Math.exp(r.v), LAYERS.dis.stops) || "var(--r2)";
   return '<button type="button" class="wrow" title="' + esc(polTip(r.l)) + '">' +
     '<span>' + esc(cap(r.l.feature)) + '<span class="q">' + esc(r.l.situation) + (r.l.road === "freeway" ? ", freeway" : "") + ' · ' + fmt(r.l.reports) + ' reports' + (r.l.raises ? "" : " · not crash-confirmed") + '</span></span>' +
     '<span class="wbar" aria-hidden="true"><span class="ax"></span><span class="fill" style="left:' + l.toFixed(1) + '%;width:' + w(r.v).toFixed(1) + '%;background:' + col + '"></span></span>' +
@@ -904,7 +1008,7 @@ function disSection(i){
 }
 function barRow(e, base, capVal){
   const w = v => v === 0 ? 0 : Math.max(4, Math.sqrt(Math.min(Math.abs(v), capVal) / capVal) * 48), pos = v => 50 + Math.sign(v) * w(v);
-  const l = e.v >= 0 ? 50 : pos(e.v), col = e.v >= 0 ? "var(--r3)" : "var(--accent)";
+  const l = e.v >= 0 ? 50 : pos(e.v), col = rampColor(Math.exp(e.v), LAYERS.dis.stops) || "var(--r2)";
   const a = Math.min(pos(e.lo), pos(e.hi)), b = Math.max(pos(e.lo), pos(e.hi));
   const detail = '<div class="wdetail" hidden id="wd' + base + e.k + '"><div class="dh"><span>Feature</span><span>This tract</span><span>' + (base === "p" ? "Pinned" : "Typical") + '</span><span>Factor</span></div>' +
     e.feats.map(({ j, c }) => '<div class="dr"><span>' + esc(LAB[F[j]][0]) + '</span><span>' + showRaw(F[j], rawOf(F[j], FEAT[CUR][j])) + '</span><span>' +
@@ -960,7 +1064,7 @@ function renderTract(){
   let h = '<div class="tcard"><div class="tc-head"><div><div class="eyebrow">Selected tract</div><h3>' + t[9] + '</h3><div class="where">' + where + '</div></div>' +
     '<div class="tc-actions"><button type="button" class="ibtn" id="pinbtn" aria-pressed="' + (pin === i) + '">' + (pin === i ? "Pinned" : "Pin to compare") + '</button>' +
     '<button type="button" class="ibtn" id="clearbtn" aria-label="Close this tract">×</button></div></div>' +
-    '<div class="chips">' + statusTag(s) + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
+    '<div class="chips">' + statusTag(s) + '</div>' +
     (layer === "dis" ? disSection(i) : '');
   if (layer === "risk"){
     h += '<h4 class="tc-sub">Crash risk</h4><p class="lead">' + summaryText(i) + '</p>';
