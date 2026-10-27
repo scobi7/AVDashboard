@@ -137,6 +137,10 @@ canvas#map.dragging{cursor:grabbing}
 button.chip{font:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink2)}
 button.chip[aria-pressed="true"]{border-color:currentColor}
 button.chip[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
+.dotbtn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px;cursor:pointer;border:1px solid var(--line);background:var(--surface)}
+.dotbtn .dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 6px 1px currentColor;flex-shrink:0}
+.dotbtn[aria-pressed="true"]{border-color:currentColor}
+.dotbtn[aria-pressed="false"]{opacity:.55;text-decoration:line-through}
 .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px}
 .kv dt{color:var(--ink2)}
 .kv dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
@@ -536,7 +540,7 @@ let FILT = FILT0(), MATCH = new Uint8Array(T.length);
 const passOthers = i => { const t = T[i];
   return (FILT.county === "" || t[2] === +FILT.county) && FILT.status.has(t[10]) && !(FILT.reliable && t[11] != null && !t[14]); };
 const passRange = i => (FILT.lo <= 1 && FILT.hi >= 100) || (T[i][20] != null && T[i][20] >= FILT.lo && T[i][20] <= FILT.hi);
-$("#fstatus").innerHTML = hasStatus.map(s => '<button type="button" class="chip ' + ["served", "watch", "flag", "none"][s] + '" data-s="' + s + '" aria-pressed="true">' + STATUS[s] + '</button>').join("");
+$("#fstatus").innerHTML = hasStatus.map(s => '<button type="button" class="dotbtn" style="color:' + STATUS_VAR[s] + '" data-s="' + s + '" aria-pressed="true"><span class="dot"></span>' + STATUS[s] + '</button>').join("");
 function syncFilterUI(){
   $("#flo").value = FILT.lo; $("#fhi").value = FILT.hi;
   document.querySelectorAll("#fstatus button").forEach(b => b.setAttribute("aria-pressed", FILT.status.has(+b.dataset.s)));
@@ -962,7 +966,7 @@ function renderTract(){
     '<div class="tc-actions"><button type="button" class="ibtn" id="pinbtn" aria-pressed="' + (pin === i) + '">' + (pin === i ? "Pinned" : "Pin to compare") + '</button>' +
     '<button type="button" class="ibtn" id="clearbtn" aria-label="Close this tract">×</button></div></div>' +
     '<div class="chips">' + statusTag(s) + (t[11] != null && !t[14] ? '<span class="chip none">Extrapolated</span>' : '') + '</div>' +
-    disSection(i);
+    (layer === "dis" ? disSection(i) : '');
   if (layer === "risk"){
     h += (DIS[i] ? '<h4 class="tc-sub">Crash risk · a second, independent model</h4>' : '') + '<p class="lead">' + summaryText(i) + '</p>';
     if (t[20] != null){
