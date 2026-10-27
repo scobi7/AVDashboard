@@ -501,10 +501,10 @@ const FILING = "service area: CPUC deployment filing, " + D.asOf;
 const PCT_STOPS = [0, 20, 40, 60, 80];
 function quintiles(vals){ const s = vals.filter(v => v != null && isFinite(v)).sort((a, b) => a - b); return [s[0], .2, .4, .6, .8].map((p, k) => k ? quant(s, p) : p); }
 const LAYERS = {
-  dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr, ring:true,
+  dis:   { group:"Disengagement risk", name:"Disengagement risk per mile", type:"ramp", val:i => DIS[i] ? DIS[i][0] : null, f:xr,
            desc:"<b>Disengagement risk per mile:</b> how often a supervised test vehicle needed a human to take over, per mile on this tract's roads, against the California average (1×). Built from DMV disengagement reports and OpenStreetMap road features — no crash data used.",
            data:"Data: CA DMV disengagement and mileage reports 2020–24 · OpenStreetMap · Caltrans traffic counts (notebook 17)" },
-  risk:  { group:"Crash risk", name:"Crash risk", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord, ring:true,
+  risk:  { group:"Crash risk", name:"Crash risk", type:"ramp", val:i => T[i][20], stops:PCT_STOPS, f:ord,
            desc:"<b>Crash risk:</b> rank out of 100 tracts on this map, by expected AV collisions per quarter if the tract were served like a typical listed tract.",
            data:"Data: model trained on Waymo's 2025–26 collision filings to the CPUC (reported by the operator, not independently verified) · " + FILING },
   unc:   { group:"Crash risk", name:"How uncertain is the ranking", type:"ramp", val:i => T[i][21] == null ? null : T[i][22] - T[i][21], f:v => Math.round(v) + " pts",
@@ -520,19 +520,19 @@ const LAYERS = {
            nullText:"Not in a filing: no record",
            desc:"<b>Reported collisions:</b> collisions Waymo reported to the CPUC in each listed tract, 2025Q1–2026Q2, whoever was at fault. Only tracts in a filing have a record.",
            data:"Data: CPUC Waymo deployment filings 2025Q1–2026Q2 (reported by the operator)" },
-  hisp:  { group:"Who lives there", name:"Hispanic share", type:"ramp", val:i => T[i][5], stops:[0, .2, .4, .6, .8], f:v => Math.round(v * 100) + "%", ring:true,
-           desc:"<b>Hispanic share of residents.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
-  black: { group:"Who lives there", name:"Black share", type:"ramp", val:i => T[i][6], stops:[0, .05, .1, .2, .4], f:v => Math.round(v * 100) + "%", ring:true,
-           desc:"<b>Black (non-Hispanic) share of residents.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
-  inc:   { group:"Who lives there", name:"Median income", type:"ramp", val:i => T[i][4], stops:[0, 60000, 90000, 130000, 180000], f:v => "$" + Math.round(v / 1000) + "k", ring:true,
-           desc:"<b>Median household income.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
-  veh:   { group:"Who lives there", name:"Households with no car", type:"ramp", val:i => T[i][7], stops:[0, .05, .1, .2, .35], f:v => Math.round(v * 100) + "%", ring:true,
-           desc:"<b>Households with no car.</b> Ringed tracts are in a deployment filing.", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  hisp:  { group:"Who lives there", name:"Hispanic share", type:"ramp", val:i => T[i][5], stops:[0, .2, .4, .6, .8], f:v => Math.round(v * 100) + "%",
+           desc:"<b>Hispanic share of residents.</b>", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  black: { group:"Who lives there", name:"Black share", type:"ramp", val:i => T[i][6], stops:[0, .05, .1, .2, .4], f:v => Math.round(v * 100) + "%",
+           desc:"<b>Black (non-Hispanic) share of residents.</b>", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  inc:   { group:"Who lives there", name:"Median income", type:"ramp", val:i => T[i][4], stops:[0, 60000, 90000, 130000, 180000], f:v => "$" + Math.round(v / 1000) + "k",
+           desc:"<b>Median household income.</b>", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
+  veh:   { group:"Who lives there", name:"Households with no car", type:"ramp", val:i => T[i][7], stops:[0, .05, .1, .2, .35], f:v => Math.round(v * 100) + "%",
+           desc:"<b>Households with no car.</b>", data:"Data: ACS 2019–2023 5-year estimates · " + FILING },
 };
 F.forEach((f, j) => {
   const vals = T.map((t, i) => FEAT[i] ? rawOf(f, FEAT[i][j]) : null);
-  LAYERS["f" + j] = { group:"Model inputs", name:LAB[f][0], type:"ramp", val:i => vals[i], stops:quintiles(vals), f:v => showRaw(f, v), ring:true,
-    desc:"<b>" + LAB[f][0] + "</b> (" + LAB[f][1] + "), one of the 13 features the crash-risk model reads, coloured in fifths of the tracts on this map. Ringed tracts are in a deployment filing.",
+  LAYERS["f" + j] = { group:"Model inputs", name:LAB[f][0], type:"ramp", val:i => vals[i], stops:quintiles(vals), f:v => showRaw(f, v),
+    desc:"<b>" + LAB[f][0] + "</b> (" + LAB[f][1] + "), one of the 13 features the crash-risk model reads, coloured in fifths of the tracts on this map.",
     data:"Data: " + (/road|crossing|signal|arterial|freeway|bike/.test(f) ? "OpenStreetMap (Geofabrik)" : "ACS 2019–2023 5-year estimates; Census 2023 gazetteer") + " · " + FILING };
 });
 LAYERS.unc.stops = quintiles(T.map((t, i) => LAYERS.unc.val(i)));
