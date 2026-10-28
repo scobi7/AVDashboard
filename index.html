@@ -128,6 +128,16 @@ canvas#map.dragging{cursor:grabbing}
 .colorkey.collapsed .title{margin-bottom:0}
 .colorkey.collapsed .title::after{content:"▸"}
 .colorkey.collapsed > :not(.title){display:none!important}
+.backbar{margin:-2px 0 2px}
+.placecard{position:absolute;left:12px;top:12px;z-index:2;max-width:300px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:10px 12px;font-size:12.5px;color:var(--ink2);display:grid;gap:5px}
+.placecard b.nm{font-size:14px;color:var(--ink)}
+.placecard .x{position:absolute;right:6px;top:4px;border:0;background:none;font:inherit;font-size:16px;color:var(--ink2);cursor:pointer}
+.placecard h5{margin:6px 0 0;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.placecard .prow{display:flex;align-items:center;gap:7px}
+.placecard .prow i{width:10px;height:10px;border-radius:50%;flex:none}
+.placecard .prow span{flex:1}
+.placecard .prow em{font-style:normal;font-family:var(--mono);color:var(--ink);font-size:12px}
+.placecard .head{color:var(--ink);font-weight:600}
 .colorkey .nums{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11px}
 .colorkey .key{display:flex;margin-top:5px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);align-items:center}
@@ -340,6 +350,7 @@ footer a{color:var(--ink2)}
         <div class="tip" id="tip" hidden></div>
         <div class="tractcount" id="tractcount"></div>
         <div class="colorkey" id="colorkey" hidden></div>
+        <div class="placecard" id="placecard" hidden></div>
         <div id="metrolabels"></div>
       </div>
       <div class="legend" id="legend"></div>
@@ -675,7 +686,7 @@ function styleOf(i){
   if (col == null) return [pal["--other"], .35, 0];
   return [col, 1, 0];
 }
-let hiSet = null, snap = null, snapValid = false, proj = [], hoverI = -1, lastView = "", settleT = 0, moving = false;
+let backTo = -1, hiSet = null, snap = null, snapValid = false, proj = [], hoverI = -1, lastView = "", settleT = 0, moving = false;
 function drawOutline(){
   if (!OUTLINE.length) return;
   ctx.globalAlpha = Math.max(.25, Math.min(.6, .6 - (view.z - 1) * .03));
@@ -906,7 +917,7 @@ document.querySelectorAll("[data-layer]").forEach(b => b.addEventListener("click
 
 /* ---------------- map interaction ---------------- */
 function go(p){ const [lon, lat, z] = PRESET[p]; view = { lon, lat, z }; draw(); }
-$("#preset").addEventListener("change", e => { hiSet = null; go(e.target.value); });
+$("#preset").addEventListener("change", e => { clearHi(); go(e.target.value); });
 function fitTo(idx){
   if (!idx.length || !W) return;
   let a = 180, b = -180, c = 90, d = -90;
@@ -961,6 +972,25 @@ function nearestCell(x, y){
   return best;
 }
 $("#colorkey").addEventListener("click", e => { if (e.target.closest(".title")) $("#colorkey").classList.toggle("collapsed"); });
+// summary of a searched city or county: the numbers the script quotes, all computed from the tracts on this map
+function setHi(name, idx){ hiSet = new Set(idx); showPlace(name, idx); }
+function clearHi(){ hiSet = null; $("#placecard").hidden = true; }
+function showPlace(name, idx){
+  const n = {}, pop = {}, v = []; let res = 0;
+  idx.forEach(i => { const t = T[i], c = visClass(t); n[c] = (n[c] || 0) + 1; pop[c] = (pop[c] || 0) + t[3]; res += t[3]; if (DIS[i]) v.push(DIS[i][0]); });
+  v.sort((a, b) => a - b);
+  const med = v.length ? (v.length % 2 ? v[v.length >> 1] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2) : null;
+  const none = (n[2] || 0) + (n[5] || 0), noneRes = (pop[2] || 0) + (pop[5] || 0);
+  const rows = [0, 1, 2, 4, 5].filter(c => n[c]).map(c => '<div class="prow"><i style="background:var(' + CAT.stat.col[c] + ')"></i><span>' + STATUS[c] + '</span><em>' + fmt(n[c]) + ' · ' + fmt(pop[c]) + '</em></div>').join("");
+  $("#placecard").innerHTML = '<button type="button" class="x" id="placex" aria-label="Clear highlight">×</button><b class="nm">' + esc(name) + '</b>' +
+    '<div>' + fmt(idx.length) + ' tracts · ' + fmt(res) + ' residents</div>' +
+    '<h5>Similar test data?</h5><div class="head">' + fmt(none) + ' of ' + fmt(idx.length) + ' tracts (' + Math.round(none / idx.length * 100) + '%) have no similar test data, ' + fmt(noneRes) + ' residents</div>' +
+    rows + '<div style="font-size:11px">tracts · residents</div>' +
+    (med == null ? "" : '<h5>Disengagement risk per mile</h5><div class="head">Median ' + med.toFixed(2) + '× an average California road mile</div>' +
+      '<div>Range ' + v[0].toFixed(2) + '× to ' + v[v.length - 1].toFixed(2) + '×; ' + fmt(v.filter(x => x > 1).length) + ' of ' + fmt(v.length) + ' tracts above average</div>');
+  $("#placecard").hidden = false;
+}
+$("#placecard").addEventListener("click", e => { if (e.target.id === "placex"){ clearHi(); draw(); } });
 function placeTip(x, y){
   const tw = tip.offsetWidth, th = tip.offsetHeight, key = $("#colorkey");
   let left = Math.max(6, Math.min(x + 14, W - tw - 6)), top = Math.min(Math.max(6, y - th - 10), H - th - 6);
@@ -1064,7 +1094,7 @@ function nearBlock(i){
   const a = all.filter(([, d]) => d <= NEAR_MAX);
   if (!a.length) return '<div class="sec"><h4>Closest listed tracts to test in</h4><p class="hint">No listed tract is similar enough to this one to suggest where to test.</p></div>';
   return '<div class="sec"><h4>Closest listed tracts to test in</h4><p class="hint">' +
-    a.map(([j]) => '<button type="button" class="linkbtn" data-goto="' + j + '">' + esc((T[j][17] ? T[j][17] + " · " : "") + (T[j][2] >= 0 ? D.counties[T[j][2]] : "") + " · " + T[j][9].slice(5)) +
+    a.map(([j]) => '<button type="button" class="linkbtn" data-near="' + j + '">' + esc((T[j][17] ? T[j][17] + " · " : "") + (T[j][2] >= 0 ? D.counties[T[j][2]] : "") + " · " + T[j][9].slice(5)) +
       '</button>').join("<br>") +
     '</p><p class="hint">Most alike on census and road features, not weather or road geometry: somewhere to learn from, not proof it will carry over.</p></div>';
 }
@@ -1104,6 +1134,7 @@ function renderTract(){
   let h = '<div class="tcard"><div class="tc-head"><div><div class="eyebrow">Selected tract</div><h3>' + t[9] + '</h3><div class="where">' + where + '</div></div>' +
     '<div class="tc-actions"><button type="button" class="ibtn" id="pinbtn" aria-pressed="' + (pin === i) + '">' + (pin === i ? "Pinned" : "Pin to compare") + '</button>' +
     '<button type="button" class="ibtn" id="clearbtn" aria-label="Close this tract">×</button></div></div>' +
+    (backTo >= 0 && backTo !== i ? '<div class="backbar"><button type="button" class="linkbtn" data-back="' + backTo + '">← Back to tract ' + T[backTo][9] + (T[backTo][17] ? ' · ' + esc(T[backTo][17]) : '') + '</button></div>' : '') +
     '<div class="chips">' + statusTag(visClass(t)) + '</div>' +
     (layer === "dis" ? disSection(i) : '');
   h += nearBlock(i);
@@ -1132,13 +1163,15 @@ $("#tbody").addEventListener("click", e => {
   if (row){ const d = document.getElementById(row.getAttribute("aria-controls")); const open = row.getAttribute("aria-expanded") === "true";
     row.setAttribute("aria-expanded", !open); d.hidden = open; return; }
   const g = e.target.closest("[data-goto]"); if (g){ selectTract(+g.dataset.goto, true); return; }
+  const nb = e.target.closest("[data-near]"); if (nb){ backTo = pick; selectTract(+nb.dataset.near, true, true); return; }  // jump to a suggestion, keeping a way back
+  const bk = e.target.closest("[data-back]"); if (bk){ selectTract(+bk.dataset.back, true); return; }
   if (e.target.id === "pinbtn"){ pin = pin === pick ? -1 : pick; renderTract(); draw(); toast(pin >= 0 ? "Pinned. Select another tract to compare." : "Unpinned."); return; }
   if (e.target.id === "unpinbtn"){ pin = -1; renderTract(); draw(); return; }
   if (e.target.id === "analbtn"){ showAnal = !showAnal; renderTract(); draw(); if (showAnal && ANAL[pick]) fitTo([pick, ...ANAL[pick][0].filter(r => r >= 0)]); return; }
-  if (e.target.id === "clearbtn"){ pick = -1; showAnal = false; renderTract(); draw(); markRow(); }
+  if (e.target.id === "clearbtn"){ pick = -1; showAnal = false; backTo = -1; renderTract(); draw(); markRow(); }
 });
-function selectTract(i, fly){
-  const t = T[i]; if (pick !== i) showAnal = false; pick = i;
+function selectTract(i, fly, keepBack){
+  const t = T[i]; if (pick !== i) showAnal = false; if (!keepBack) backTo = -1; pick = i;
   if (fly){ view = { lon:t[0], lat:t[1], z:Math.max(view.z, 14) }; }
   renderTract(); markRow(); $("#side").scrollTop = 0;
   if (t[2] >= 0) renderCounty(t[2]); else draw();
@@ -1151,18 +1184,18 @@ $("#qlist").innerHTML = D.counties.map(c => '<option value="' + c + ' County">')
 const centre = rows => ({ lon:rows.reduce((a, t) => a + t[0], 0) / rows.length, lat:rows.reduce((a, t) => a + t[1], 0) / rows.length });
 $("#find").addEventListener("submit", e => {
   e.preventDefault();
-  const q = $("#q").value.trim(); if (!q){ hiSet = null; draw(); return; }
-  hiSet = null;
+  const q = $("#q").value.trim(); if (!q){ clearHi(); draw(); return; }
+  clearHi();
   const ql = q.toLowerCase(), isCounty = / county$/.test(ql);
   const ci = D.counties.findIndex(c => c.toLowerCase() === ql.replace(/ county$/, ""));
   const city = isCounty ? null : CITIES.find(c => c.toLowerCase() === ql);
   if (city){
     const rows = T.filter(t => t[17] === city);
-    hiSet = new Set(T.map((t, i) => t[17] === city ? i : -1).filter(i => i >= 0));
+    setHi(city, T.map((t, i) => t[17] === city ? i : -1).filter(i => i >= 0));
     view = { ...centre(rows), z:Math.max(6, Math.min(20, 40 / Math.sqrt(rows.length))) };
     renderCounty(rows[0][2]); return;
   }
-  if (ci >= 0){ hiSet = new Set(T.map((t, i) => t[2] === ci ? i : -1).filter(i => i >= 0)); view = { ...centre(T.filter(t => t[2] === ci)), z:5 }; renderCounty(ci); return; }
+  if (ci >= 0){ setHi(D.counties[ci] + " County", T.map((t, i) => t[2] === ci ? i : -1).filter(i => i >= 0)); view = { ...centre(T.filter(t => t[2] === ci)), z:5 }; renderCounty(ci); return; }
   const d = q.replace(/\D/g, "");
   let i = byGeo.get(d.padStart(11, "0"));
   if (i == null && d.length >= 4) i = T.findIndex(t => t[9].endsWith(d.padStart(6, "0")));
